@@ -15,4 +15,6 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
 
     boolean existsByRegistrationNumber(String registrationNumber);
 
+    long count();
+
 }

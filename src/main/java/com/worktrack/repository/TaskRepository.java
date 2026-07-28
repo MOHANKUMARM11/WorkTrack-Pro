@@ -15,4 +15,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByStatus(TaskStatus status);
 
     boolean existsByTitle(String title);
+
+    long count();
+
+    long countByStatus(TaskStatus status);
 }

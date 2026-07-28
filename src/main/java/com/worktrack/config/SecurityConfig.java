@@ -31,6 +31,10 @@ public class SecurityConfig {
                                 "/api/v1/companies/**",
                                 "/api/v1/employees/**",
                                 "/api/v1/tasks/**",
+                                "/api/v1/attendance/**",
+                                "/api/v1/leaves/**",
+                                "/api/v1/payroll/**",
+                                "/api/v1/dashboard/**",
 
                                 // Swagger
                                 "/swagger-ui/**",

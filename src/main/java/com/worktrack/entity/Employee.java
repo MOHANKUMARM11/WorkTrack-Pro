@@ -51,4 +51,17 @@ public class Employee {
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Task> tasks = new ArrayList<>();
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<Attendance> attendanceRecords = new ArrayList<>();
+
+    @OneToMany(mappedBy = "employee")
+    private List<Leave> leaves;
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<Payroll> payrolls = new ArrayList<>();
+
+
 }
