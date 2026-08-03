@@ -74,6 +74,13 @@ public class TaskServiceImpl implements TaskService {
                 .orElseThrow(() ->
                         new TaskNotFoundException("Task not found"));
 
+        taskRepository.findByTitle(request.getTitle())
+                .ifPresent(existingTask -> {
+                    if (!existingTask.getId().equals(task.getId())) {
+                        throw new TaskTitleAlreadyExistsException("Task title already exists");
+                    }
+                });
+
         Employee employee = employeeRepository.findById(request.getEmployeeId())
                 .orElseThrow(() ->
                         new EmployeeNotFoundException("Employee not found"));
