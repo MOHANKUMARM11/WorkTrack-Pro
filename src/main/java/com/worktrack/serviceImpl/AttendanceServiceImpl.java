@@ -6,6 +6,10 @@ import com.worktrack.dto.response.AttendanceResponse;
 import com.worktrack.entity.Attendance;
 import com.worktrack.entity.Company;
 import com.worktrack.entity.Employee;
+import com.worktrack.exception.custom.AttendanceNotFoundException;
+import com.worktrack.exception.custom.CompanyNotFoundException;
+import com.worktrack.exception.custom.DuplicateAttendanceException;
+import com.worktrack.exception.custom.EmployeeNotFoundException;
 import com.worktrack.mapper.AttendanceMapper;
 import com.worktrack.repository.AttendanceRepository;
 import com.worktrack.repository.CompanyRepository;
@@ -31,14 +35,17 @@ public class AttendanceServiceImpl implements AttendanceService {
                 request.getEmployeeId(),
                 request.getAttendanceDate())) {
 
-            throw new RuntimeException("Attendance already exists for this employee on this date");
+            throw new DuplicateAttendanceException(
+                    "Attendance already exists for this employee on this date");
         }
 
         Employee employee = employeeRepository.findById(request.getEmployeeId())
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+                .orElseThrow(() ->
+                        new EmployeeNotFoundException("Employee not found"));
 
         Company company = companyRepository.findById(request.getCompanyId())
-                .orElseThrow(() -> new RuntimeException("Company not found"));
+                .orElseThrow(() ->
+                        new CompanyNotFoundException("Company not found"));
 
         Attendance attendance = AttendanceMapper.toEntity(request, employee, company);
 
@@ -49,7 +56,8 @@ public class AttendanceServiceImpl implements AttendanceService {
     public AttendanceResponse getAttendanceById(Long id) {
 
         Attendance attendance = attendanceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Attendance not found"));
+                .orElseThrow(() ->
+                        new AttendanceNotFoundException("Attendance not found"));
 
         return AttendanceMapper.toResponse(attendance);
     }
@@ -67,13 +75,16 @@ public class AttendanceServiceImpl implements AttendanceService {
     public AttendanceResponse updateAttendance(Long id, AttendanceRequest request) {
 
         Attendance attendance = attendanceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Attendance not found"));
+                .orElseThrow(() ->
+                        new AttendanceNotFoundException("Attendance not found"));
 
         Employee employee = employeeRepository.findById(request.getEmployeeId())
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+                .orElseThrow(() ->
+                        new EmployeeNotFoundException("Employee not found"));
 
         Company company = companyRepository.findById(request.getCompanyId())
-                .orElseThrow(() -> new RuntimeException("Company not found"));
+                .orElseThrow(() ->
+                        new CompanyNotFoundException("Company not found"));
 
         Attendance updatedAttendance = AttendanceMapper.toEntity(request, employee, company);
 
@@ -92,7 +103,8 @@ public class AttendanceServiceImpl implements AttendanceService {
     public AttendanceResponse updateAttendanceStatus(Long id, AttendanceStatus status) {
 
         Attendance attendance = attendanceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Attendance not found"));
+                .orElseThrow(() ->
+                        new AttendanceNotFoundException("Attendance not found"));
 
         attendance.setStatus(status);
 
@@ -103,7 +115,8 @@ public class AttendanceServiceImpl implements AttendanceService {
     public void deleteAttendance(Long id) {
 
         Attendance attendance = attendanceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Attendance not found"));
+                .orElseThrow(() ->
+                        new AttendanceNotFoundException("Attendance not found"));
 
         attendanceRepository.delete(attendance);
     }

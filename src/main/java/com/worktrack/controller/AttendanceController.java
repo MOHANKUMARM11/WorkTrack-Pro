@@ -22,7 +22,6 @@ public class AttendanceController {
     @PostMapping
     public ResponseEntity<AttendanceResponse> createAttendance(
             @Valid @RequestBody AttendanceRequest request) {
-        System.out.println("=== CREATE ATTENDANCE API CALLED ===");
         return new ResponseEntity<>(
                 attendanceService.createAttendance(request),
                 HttpStatus.CREATED);

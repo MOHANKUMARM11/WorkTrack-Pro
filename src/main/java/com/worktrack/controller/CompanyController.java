@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/companies")
 @RequiredArgsConstructor
@@ -50,7 +52,6 @@ public class CompanyController {
             @Valid @RequestBody CompanyRequest request) {
 
         CompanyResponse response = companyService.updateCompany(id, request);
-        System.out.println("===== UPDATE COMPANY CALLED =====");
         return ApiResponse.<CompanyResponse>builder()
                 .success(true)
                 .message("Company updated successfully")
@@ -73,4 +74,15 @@ public class CompanyController {
                 .build();
     }
 
+    @GetMapping
+    public ApiResponse<List<CompanyResponse>> getAllCompanies() {
+
+        List<CompanyResponse> response = companyService.getAllCompanies();
+
+        return ApiResponse.<List<CompanyResponse>>builder()
+                .success(true)
+                .message("Companies retrieved successfully")
+                .data(response)
+                .build();
+    }
 }

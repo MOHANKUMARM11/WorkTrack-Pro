@@ -6,6 +6,10 @@ import com.worktrack.dto.response.LeaveResponse;
 import com.worktrack.entity.Company;
 import com.worktrack.entity.Employee;
 import com.worktrack.entity.Leave;
+import com.worktrack.exception.custom.CompanyNotFoundException;
+import com.worktrack.exception.custom.DuplicateLeaveException;
+import com.worktrack.exception.custom.EmployeeNotFoundException;
+import com.worktrack.exception.custom.LeaveNotFoundException;
 import com.worktrack.mapper.LeaveMapper;
 import com.worktrack.repository.CompanyRepository;
 import com.worktrack.repository.EmployeeRepository;
@@ -32,14 +36,17 @@ public class LeaveServiceImpl implements LeaveService {
                 request.getStartDate(),
                 request.getEndDate())) {
 
-            throw new RuntimeException("Leave request already exists for these dates.");
+            throw new DuplicateLeaveException(
+                    "Leave request already exists for these dates.");
         }
 
         Employee employee = employeeRepository.findById(request.getEmployeeId())
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+                .orElseThrow(() ->
+                        new EmployeeNotFoundException("Employee not found"));
 
         Company company = companyRepository.findById(request.getCompanyId())
-                .orElseThrow(() -> new RuntimeException("Company not found"));
+                .orElseThrow(() ->
+                        new CompanyNotFoundException("Company not found"));
 
         Leave leave = LeaveMapper.toEntity(request, employee, company);
 
@@ -50,7 +57,8 @@ public class LeaveServiceImpl implements LeaveService {
     public LeaveResponse getLeaveById(Long id) {
 
         Leave leave = leaveRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Leave not found"));
+                .orElseThrow(() ->
+                        new LeaveNotFoundException("Leave not found"));
 
         return LeaveMapper.toResponse(leave);
     }
@@ -68,13 +76,16 @@ public class LeaveServiceImpl implements LeaveService {
     public LeaveResponse updateLeave(Long id, LeaveRequest request) {
 
         Leave leave = leaveRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Leave not found"));
+                .orElseThrow(() ->
+                        new LeaveNotFoundException("Leave not found"));
 
         Employee employee = employeeRepository.findById(request.getEmployeeId())
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+                .orElseThrow(() ->
+                        new EmployeeNotFoundException("Employee not found"));
 
         Company company = companyRepository.findById(request.getCompanyId())
-                .orElseThrow(() -> new RuntimeException("Company not found"));
+                .orElseThrow(() ->
+                        new CompanyNotFoundException("Company not found"));
 
         Leave updatedLeave = LeaveMapper.toEntity(request, employee, company);
 
@@ -93,7 +104,8 @@ public class LeaveServiceImpl implements LeaveService {
     public LeaveResponse updateLeaveStatus(Long id, LeaveStatus status) {
 
         Leave leave = leaveRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Leave not found"));
+                .orElseThrow(() ->
+                        new LeaveNotFoundException("Leave not found"));
 
         leave.setStatus(status);
 
@@ -104,7 +116,8 @@ public class LeaveServiceImpl implements LeaveService {
     public void deleteLeave(Long id) {
 
         Leave leave = leaveRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Leave not found"));
+                .orElseThrow(() ->
+                        new LeaveNotFoundException("Leave not found"));
 
         leaveRepository.delete(leave);
     }

@@ -1,20 +1,22 @@
 package com.worktrack.serviceImpl;
 
 import com.worktrack.constants.UserRole;
+import com.worktrack.dto.request.LoginRequest;
 import com.worktrack.dto.request.RegisterRequest;
 import com.worktrack.dto.response.AuthResponse;
 import com.worktrack.entity.Company;
 import com.worktrack.entity.User;
+import com.worktrack.exception.custom.CompanyNotFoundException;
+import com.worktrack.exception.custom.EmailAlreadyExistsException;
 import com.worktrack.repository.CompanyRepository;
 import com.worktrack.repository.UserRepository;
+import com.worktrack.security.jwt.JwtService;
 import com.worktrack.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import com.worktrack.dto.request.LoginRequest;
-import com.worktrack.security.jwt.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -30,11 +32,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public AuthResponse register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new EmailAlreadyExistsException("Email already exists");
         }
 
         Company company = companyRepository.findById(request.getCompanyId())
-                .orElseThrow(() -> new RuntimeException("Company not found"));
+                .orElseThrow(() ->
+                        new CompanyNotFoundException("Company not found"));
 
         User user = User.builder()
                 .firstName(request.getFirstName())
@@ -58,9 +61,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .tokenType("Bearer")
                 .build();
     }
+
     @Override
     public AuthResponse login(LoginRequest request) {
-
+        System.out.println(passwordEncoder.encode("password123"));
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),

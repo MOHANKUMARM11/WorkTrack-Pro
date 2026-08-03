@@ -9,8 +9,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 @Configuration
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -27,24 +29,18 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                // Public Authentication APIs
                                 "/api/v1/auth/**",
-                                "/api/v1/companies/**",
-                                "/api/v1/employees/**",
-                                "/api/v1/tasks/**",
-                                "/api/v1/attendance/**",
-                                "/api/v1/leaves/**",
-                                "/api/v1/payroll/**",
-                                "/api/v1/dashboard/**",
 
-                                // Swagger
+                                // Swagger / OpenAPI
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/v3/api-docs"
                         ).permitAll()
 
-                        .anyRequest().authenticated())
-
+                        .anyRequest().authenticated()
+                )
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class

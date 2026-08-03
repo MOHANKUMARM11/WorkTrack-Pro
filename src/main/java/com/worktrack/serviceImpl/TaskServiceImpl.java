@@ -6,6 +6,10 @@ import com.worktrack.dto.response.TaskResponse;
 import com.worktrack.entity.Company;
 import com.worktrack.entity.Employee;
 import com.worktrack.entity.Task;
+import com.worktrack.exception.custom.CompanyNotFoundException;
+import com.worktrack.exception.custom.EmployeeNotFoundException;
+import com.worktrack.exception.custom.TaskNotFoundException;
+import com.worktrack.exception.custom.TaskTitleAlreadyExistsException;
 import com.worktrack.mapper.TaskMapper;
 import com.worktrack.repository.CompanyRepository;
 import com.worktrack.repository.EmployeeRepository;
@@ -28,14 +32,16 @@ public class TaskServiceImpl implements TaskService {
     public TaskResponse createTask(TaskRequest request) {
 
         if (taskRepository.existsByTitle(request.getTitle())) {
-            throw new RuntimeException("Task title already exists");
+            throw new TaskTitleAlreadyExistsException("Task title already exists");
         }
 
         Employee employee = employeeRepository.findById(request.getEmployeeId())
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+                .orElseThrow(() ->
+                        new EmployeeNotFoundException("Employee not found"));
 
         Company company = companyRepository.findById(request.getCompanyId())
-                .orElseThrow(() -> new RuntimeException("Company not found"));
+                .orElseThrow(() ->
+                        new CompanyNotFoundException("Company not found"));
 
         Task task = TaskMapper.toEntity(request, employee, company);
 
@@ -46,7 +52,8 @@ public class TaskServiceImpl implements TaskService {
     public TaskResponse getTaskById(Long id) {
 
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+                .orElseThrow(() ->
+                        new TaskNotFoundException("Task not found"));
 
         return TaskMapper.toResponse(task);
     }
@@ -64,13 +71,16 @@ public class TaskServiceImpl implements TaskService {
     public TaskResponse updateTask(Long id, TaskRequest request) {
 
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+                .orElseThrow(() ->
+                        new TaskNotFoundException("Task not found"));
 
         Employee employee = employeeRepository.findById(request.getEmployeeId())
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+                .orElseThrow(() ->
+                        new EmployeeNotFoundException("Employee not found"));
 
         Company company = companyRepository.findById(request.getCompanyId())
-                .orElseThrow(() -> new RuntimeException("Company not found"));
+                .orElseThrow(() ->
+                        new CompanyNotFoundException("Company not found"));
 
         task.setTitle(request.getTitle());
         task.setDescription(request.getDescription());
@@ -86,7 +96,8 @@ public class TaskServiceImpl implements TaskService {
     public TaskResponse updateTaskStatus(Long id, TaskStatus status) {
 
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+                .orElseThrow(() ->
+                        new TaskNotFoundException("Task not found"));
 
         task.setStatus(status);
 
@@ -97,7 +108,8 @@ public class TaskServiceImpl implements TaskService {
     public void deleteTask(Long id) {
 
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+                .orElseThrow(() ->
+                        new TaskNotFoundException("Task not found"));
 
         taskRepository.delete(task);
     }

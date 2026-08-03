@@ -8,19 +8,19 @@ import lombok.Data;
 @Data
 public class CompanyRequest {
 
-    @NotBlank
+    @NotBlank(message = "Company name is required")
     private String name;
 
-    @NotBlank
+    @NotBlank(message = "Registration number is required")
     private String registrationNumber;
 
-    @NotBlank
+    @NotBlank(message = "Industry is required")
     private String industry;
 
-    @NotNull
+    @NotNull(message = "Subscription plan is required")
     private SubscriptionPlan subscriptionPlan;
 
-    @NotBlank
+    @NotBlank(message = "Timezone is required")
     private String timezone;
 
 }

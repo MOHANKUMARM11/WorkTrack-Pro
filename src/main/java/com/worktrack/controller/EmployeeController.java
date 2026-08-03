@@ -8,6 +8,7 @@ import com.worktrack.service.EmployeeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/employees")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 public class EmployeeController {
 
     private final EmployeeService employeeService;
@@ -23,8 +25,6 @@ public class EmployeeController {
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<EmployeeResponse> createEmployee(
             @Valid @RequestBody EmployeeRequest request) {
-
-        System.out.println("===== CREATE EMPLOYEE API HIT =====");
 
         EmployeeResponse response = employeeService.createEmployee(request);
 

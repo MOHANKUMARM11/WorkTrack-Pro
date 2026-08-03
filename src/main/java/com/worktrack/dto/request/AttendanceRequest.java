@@ -10,20 +10,20 @@ import java.time.LocalTime;
 @Data
 public class AttendanceRequest {
 
-    @NotNull
+    @NotNull(message = "Attendance date is required")
     private LocalDate attendanceDate;
 
-    @NotNull
+    @NotNull(message = "Check-in time is required")
     private LocalTime checkIn;
 
     private LocalTime checkOut;
 
-    @NotNull
+    @NotNull(message = "Attendance status is required")
     private AttendanceStatus status;
 
-    @NotNull
+    @NotNull(message = "Employee ID is required")
     private Long employeeId;
 
-    @NotNull
+    @NotNull(message = "Company ID is required")
     private Long companyId;
 }

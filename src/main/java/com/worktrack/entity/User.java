@@ -1,78 +1,78 @@
-package com.worktrack.entity;
+    package com.worktrack.entity;
 
-import com.worktrack.common.entity.BaseEntity;
-import com.worktrack.constants.UserRole;
-import jakarta.persistence.*;
-import lombok.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
+    import com.worktrack.common.entity.BaseEntity;
+    import com.worktrack.constants.UserRole;
+    import jakarta.persistence.*;
+    import lombok.*;
+    import org.springframework.security.core.GrantedAuthority;
+    import org.springframework.security.core.authority.SimpleGrantedAuthority;
+    import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.List;
+    import java.util.Collection;
+    import java.util.List;
 
-@Entity
-@Table(name = "users")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class User extends BaseEntity implements UserDetails {
+    @Entity
+    @Table(name = "users")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public class User extends BaseEntity implements UserDetails {
 
-    @Column(nullable = false)
-    private String firstName;
+        @Column(nullable = false)
+        private String firstName;
 
-    @Column(nullable = false)
-    private String lastName;
+        @Column(nullable = false)
+        private String lastName;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+        @Column(nullable = false, unique = true)
+        private String email;
 
-    @Column(nullable = false)
-    private String password;
+        @Column(nullable = false)
+        private String password;
 
-    @Column(nullable = false)
-    private String phone;
+        @Column(nullable = false)
+        private String phone;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private UserRole role;
+        @Enumerated(EnumType.STRING)
+        @Column(nullable = false)
+        private UserRole role;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "company_id")
-    private Company company;
+        @ManyToOne(fetch = FetchType.LAZY)
+        @JoinColumn(name = "company_id")
+        private Company company;
 
-    @Column(nullable = false)
-    private Boolean enabled = true;
+        @Column(nullable = false)
+        private Boolean enabled = true;
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+        @Override
+        public Collection<? extends GrantedAuthority> getAuthorities() {
+            return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+        }
+
+        @Override
+        public String getUsername() {
+            return email;
+        }
+
+        @Override
+        public boolean isAccountNonExpired() {
+            return true;
+        }
+
+        @Override
+        public boolean isAccountNonLocked() {
+            return true;
+        }
+
+        @Override
+        public boolean isCredentialsNonExpired() {
+            return true;
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return enabled;
+        }
     }
-
-    @Override
-    public String getUsername() {
-        return email;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return enabled;
-    }
-}

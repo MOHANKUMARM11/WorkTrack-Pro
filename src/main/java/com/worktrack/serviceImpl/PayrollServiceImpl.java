@@ -6,6 +6,10 @@ import com.worktrack.dto.response.PayrollResponse;
 import com.worktrack.entity.Company;
 import com.worktrack.entity.Employee;
 import com.worktrack.entity.Payroll;
+import com.worktrack.exception.custom.CompanyNotFoundException;
+import com.worktrack.exception.custom.DuplicatePayrollException;
+import com.worktrack.exception.custom.EmployeeNotFoundException;
+import com.worktrack.exception.custom.PayrollNotFoundException;
 import com.worktrack.mapper.PayrollMapper;
 import com.worktrack.repository.CompanyRepository;
 import com.worktrack.repository.EmployeeRepository;
@@ -32,15 +36,17 @@ public class PayrollServiceImpl implements PayrollService {
                 request.getMonth(),
                 request.getYear())) {
 
-            throw new RuntimeException(
+            throw new DuplicatePayrollException(
                     "Payroll already exists for this employee for the selected month and year.");
         }
 
         Employee employee = employeeRepository.findById(request.getEmployeeId())
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+                .orElseThrow(() ->
+                        new EmployeeNotFoundException("Employee not found"));
 
         Company company = companyRepository.findById(request.getCompanyId())
-                .orElseThrow(() -> new RuntimeException("Company not found"));
+                .orElseThrow(() ->
+                        new CompanyNotFoundException("Company not found"));
 
         Payroll payroll = PayrollMapper.toEntity(request, employee, company);
 
@@ -51,7 +57,8 @@ public class PayrollServiceImpl implements PayrollService {
     public PayrollResponse getPayrollById(Long id) {
 
         Payroll payroll = payrollRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Payroll not found"));
+                .orElseThrow(() ->
+                        new PayrollNotFoundException("Payroll not found"));
 
         return PayrollMapper.toResponse(payroll);
     }
@@ -69,13 +76,16 @@ public class PayrollServiceImpl implements PayrollService {
     public PayrollResponse updatePayroll(Long id, PayrollRequest request) {
 
         Payroll payroll = payrollRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Payroll not found"));
+                .orElseThrow(() ->
+                        new PayrollNotFoundException("Payroll not found"));
 
         Employee employee = employeeRepository.findById(request.getEmployeeId())
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+                .orElseThrow(() ->
+                        new EmployeeNotFoundException("Employee not found"));
 
         Company company = companyRepository.findById(request.getCompanyId())
-                .orElseThrow(() -> new RuntimeException("Company not found"));
+                .orElseThrow(() ->
+                        new CompanyNotFoundException("Company not found"));
 
         Payroll updated = PayrollMapper.toEntity(request, employee, company);
 
@@ -97,7 +107,8 @@ public class PayrollServiceImpl implements PayrollService {
     public PayrollResponse updatePayrollStatus(Long id, PayrollStatus status) {
 
         Payroll payroll = payrollRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Payroll not found"));
+                .orElseThrow(() ->
+                        new PayrollNotFoundException("Payroll not found"));
 
         payroll.setStatus(status);
 
@@ -108,7 +119,8 @@ public class PayrollServiceImpl implements PayrollService {
     public void deletePayroll(Long id) {
 
         Payroll payroll = payrollRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Payroll not found"));
+                .orElseThrow(() ->
+                        new PayrollNotFoundException("Payroll not found"));
 
         payrollRepository.delete(payroll);
     }

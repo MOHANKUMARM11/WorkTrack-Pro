@@ -4,6 +4,7 @@ import com.worktrack.constants.LeaveType;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -20,6 +21,8 @@ public class LeaveRequest {
     private LocalDate endDate;
 
     @NotBlank(message = "Reason is required")
+    @Size(min = 5, max = 255,
+            message = "Reason must be between 5 and 255 characters")
     private String reason;
 
     @NotNull(message = "Leave type is required")

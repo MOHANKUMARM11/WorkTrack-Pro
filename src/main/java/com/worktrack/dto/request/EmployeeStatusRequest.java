@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 public class EmployeeStatusRequest {
 
-    @NotNull
+    @NotNull(message = "Employee status is required")
     private EmployeeStatus status;
 
 }
