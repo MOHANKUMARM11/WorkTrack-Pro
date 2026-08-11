@@ -3,6 +3,8 @@ package com.worktrack.repository;
 import com.worktrack.constants.AttendanceStatus;
 import com.worktrack.entity.Attendance;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -23,6 +25,21 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
             LocalDate attendanceDate,
             AttendanceStatus status
     );
+
+    long countByCompanyId(Long companyId);
+
+    long countByCompanyIdAndStatus(
+            Long companyId,
+            AttendanceStatus status);
+
+    @Query("""
+        SELECT AVG(a.workingHours)
+        FROM Attendance a
+        WHERE a.company.id = :companyId
+        AND a.workingHours IS NOT NULL
+        """)
+    Double findAverageWorkingHoursByCompanyId(
+            @Param("companyId") Long companyId);
 
 
 }
