@@ -31,4 +31,8 @@ public interface LeaveRepository extends JpaRepository<Leave, Long> {
         """)
     Integer sumTotalLeaveDaysByCompanyId(
             @Param("companyId") Long companyId);
+
+    long countByEmployeeDepartmentIdAndStatus(
+            Long departmentId,
+            LeaveStatus status);
 }

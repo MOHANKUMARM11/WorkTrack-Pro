@@ -40,4 +40,10 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
         """)
     long countOverdueTasksByCompanyId(
             @Param("companyId") Long companyId);
+
+    long countByEmployeeDepartmentId(Long departmentId);
+
+    long countByEmployeeDepartmentIdAndStatus(
+            Long departmentId,
+            TaskStatus status);
 }
