@@ -11,6 +11,8 @@ import com.worktrack.exception.custom.CompanyNotFoundException;
 import com.worktrack.exception.custom.DuplicateAttendanceException;
 import com.worktrack.exception.custom.EmployeeNotFoundException;
 import com.worktrack.mapper.AttendanceMapper;
+import com.worktrack.notification.NotificationEventProducer;
+import com.worktrack.notification.event.AttendanceLateEvent;
 import com.worktrack.repository.AttendanceRepository;
 import com.worktrack.repository.CompanyRepository;
 import com.worktrack.repository.EmployeeRepository;
@@ -27,9 +29,11 @@ public class AttendanceServiceImpl implements AttendanceService {
     private final AttendanceRepository attendanceRepository;
     private final EmployeeRepository employeeRepository;
     private final CompanyRepository companyRepository;
+    private final NotificationEventProducer notificationEventProducer;
 
     @Override
-    public AttendanceResponse createAttendance(AttendanceRequest request) {
+    public AttendanceResponse createAttendance(
+            AttendanceRequest request) {
 
         if (attendanceRepository.existsByEmployeeIdAndAttendanceDate(
                 request.getEmployeeId(),
@@ -39,25 +43,40 @@ public class AttendanceServiceImpl implements AttendanceService {
                     "Attendance already exists for this employee on this date");
         }
 
-        Employee employee = employeeRepository.findById(request.getEmployeeId())
-                .orElseThrow(() ->
-                        new EmployeeNotFoundException("Employee not found"));
+        Employee employee =
+                employeeRepository.findById(request.getEmployeeId())
+                        .orElseThrow(() ->
+                                new EmployeeNotFoundException(
+                                        "Employee not found"));
 
-        Company company = companyRepository.findById(request.getCompanyId())
-                .orElseThrow(() ->
-                        new CompanyNotFoundException("Company not found"));
+        Company company =
+                companyRepository.findById(request.getCompanyId())
+                        .orElseThrow(() ->
+                                new CompanyNotFoundException(
+                                        "Company not found"));
 
-        Attendance attendance = AttendanceMapper.toEntity(request, employee, company);
+        Attendance attendance =
+                AttendanceMapper.toEntity(
+                        request,
+                        employee,
+                        company);
 
-        return AttendanceMapper.toResponse(attendanceRepository.save(attendance));
+        Attendance savedAttendance =
+                attendanceRepository.save(attendance);
+
+        publishLateEventIfRequired(savedAttendance);
+
+        return AttendanceMapper.toResponse(savedAttendance);
     }
 
     @Override
     public AttendanceResponse getAttendanceById(Long id) {
 
-        Attendance attendance = attendanceRepository.findById(id)
-                .orElseThrow(() ->
-                        new AttendanceNotFoundException("Attendance not found"));
+        Attendance attendance =
+                attendanceRepository.findById(id)
+                        .orElseThrow(() ->
+                                new AttendanceNotFoundException(
+                                        "Attendance not found"));
 
         return AttendanceMapper.toResponse(attendance);
     }
@@ -72,52 +91,103 @@ public class AttendanceServiceImpl implements AttendanceService {
     }
 
     @Override
-    public AttendanceResponse updateAttendance(Long id, AttendanceRequest request) {
+    public AttendanceResponse updateAttendance(
+            Long id,
+            AttendanceRequest request) {
 
-        Attendance attendance = attendanceRepository.findById(id)
-                .orElseThrow(() ->
-                        new AttendanceNotFoundException("Attendance not found"));
+        Attendance attendance =
+                attendanceRepository.findById(id)
+                        .orElseThrow(() ->
+                                new AttendanceNotFoundException(
+                                        "Attendance not found"));
 
-        Employee employee = employeeRepository.findById(request.getEmployeeId())
-                .orElseThrow(() ->
-                        new EmployeeNotFoundException("Employee not found"));
+        Employee employee =
+                employeeRepository.findById(request.getEmployeeId())
+                        .orElseThrow(() ->
+                                new EmployeeNotFoundException(
+                                        "Employee not found"));
 
-        Company company = companyRepository.findById(request.getCompanyId())
-                .orElseThrow(() ->
-                        new CompanyNotFoundException("Company not found"));
+        Company company =
+                companyRepository.findById(request.getCompanyId())
+                        .orElseThrow(() ->
+                                new CompanyNotFoundException(
+                                        "Company not found"));
 
-        Attendance updatedAttendance = AttendanceMapper.toEntity(request, employee, company);
+        Attendance updatedAttendance =
+                AttendanceMapper.toEntity(
+                        request,
+                        employee,
+                        company);
 
-        attendance.setAttendanceDate(updatedAttendance.getAttendanceDate());
-        attendance.setCheckIn(updatedAttendance.getCheckIn());
-        attendance.setCheckOut(updatedAttendance.getCheckOut());
-        attendance.setWorkingHours(updatedAttendance.getWorkingHours());
-        attendance.setStatus(updatedAttendance.getStatus());
+        attendance.setAttendanceDate(
+                updatedAttendance.getAttendanceDate());
+
+        attendance.setCheckIn(
+                updatedAttendance.getCheckIn());
+
+        attendance.setCheckOut(
+                updatedAttendance.getCheckOut());
+
+        attendance.setWorkingHours(
+                updatedAttendance.getWorkingHours());
+
+        attendance.setStatus(
+                updatedAttendance.getStatus());
+
         attendance.setEmployee(employee);
         attendance.setCompany(company);
 
-        return AttendanceMapper.toResponse(attendanceRepository.save(attendance));
+        Attendance savedAttendance =
+                attendanceRepository.save(attendance);
+
+        publishLateEventIfRequired(savedAttendance);
+
+        return AttendanceMapper.toResponse(savedAttendance);
     }
 
     @Override
-    public AttendanceResponse updateAttendanceStatus(Long id, AttendanceStatus status) {
+    public AttendanceResponse updateAttendanceStatus(
+            Long id,
+            AttendanceStatus status) {
 
-        Attendance attendance = attendanceRepository.findById(id)
-                .orElseThrow(() ->
-                        new AttendanceNotFoundException("Attendance not found"));
+        Attendance attendance =
+                attendanceRepository.findById(id)
+                        .orElseThrow(() ->
+                                new AttendanceNotFoundException(
+                                        "Attendance not found"));
 
         attendance.setStatus(status);
 
-        return AttendanceMapper.toResponse(attendanceRepository.save(attendance));
+        Attendance savedAttendance =
+                attendanceRepository.save(attendance);
+
+        publishLateEventIfRequired(savedAttendance);
+
+        return AttendanceMapper.toResponse(savedAttendance);
     }
 
     @Override
     public void deleteAttendance(Long id) {
 
-        Attendance attendance = attendanceRepository.findById(id)
-                .orElseThrow(() ->
-                        new AttendanceNotFoundException("Attendance not found"));
+        Attendance attendance =
+                attendanceRepository.findById(id)
+                        .orElseThrow(() ->
+                                new AttendanceNotFoundException(
+                                        "Attendance not found"));
 
         attendanceRepository.delete(attendance);
+    }
+
+    private void publishLateEventIfRequired(
+            Attendance attendance) {
+
+        if (attendance.getStatus() == AttendanceStatus.LATE) {
+
+            notificationEventProducer.publishAttendanceLate(
+                    new AttendanceLateEvent(
+                            attendance.getId(),
+                            attendance.getEmployee().getId(),
+                            attendance.getAttendanceDate()));
+        }
     }
 }
