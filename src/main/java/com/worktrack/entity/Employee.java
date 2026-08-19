@@ -4,9 +4,9 @@ import com.worktrack.constants.EmployeeStatus;
 import com.worktrack.constants.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.util.ArrayList;
 import java.util.List;
-import com.worktrack.entity.Task;
 
 @Entity
 @Table(name = "employees")
@@ -49,6 +49,10 @@ public class Employee {
     private Company company;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "office_location_id")
+    private OfficeLocation officeLocation;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
     private Department department;
 
@@ -61,11 +65,10 @@ public class Employee {
     private List<Attendance> attendanceRecords = new ArrayList<>();
 
     @OneToMany(mappedBy = "employee")
-    private List<Leave> leaves;
+    @Builder.Default
+    private List<Leave> leaves = new ArrayList<>();
 
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Payroll> payrolls = new ArrayList<>();
-
-
 }

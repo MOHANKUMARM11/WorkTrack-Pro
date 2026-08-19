@@ -1,4 +1,4 @@
-package com.worktrack.service.impl;
+package com.worktrack.serviceImpl;
 
 import com.worktrack.constants.TaskStatus;
 import com.worktrack.dto.request.TaskRequest;
@@ -26,139 +26,121 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TaskServiceImpl implements TaskService {
 
-    private final TaskRepository taskRepository;
-    private final EmployeeRepository employeeRepository;
-    private final CompanyRepository companyRepository;
-    private final NotificationEventProducer notificationEventProducer;
+        private final TaskRepository taskRepository;
+        private final EmployeeRepository employeeRepository;
+        private final CompanyRepository companyRepository;
+        private final NotificationEventProducer notificationEventProducer;
 
-    @Override
-    public TaskResponse createTask(TaskRequest request) {
+        @Override
+        public TaskResponse createTask(TaskRequest request) {
 
-        if (taskRepository.existsByTitle(request.getTitle())) {
-            throw new TaskTitleAlreadyExistsException(
-                    "Task title already exists");
+                if (taskRepository.existsByTitle(request.getTitle())) {
+                        throw new TaskTitleAlreadyExistsException(
+                                        "Task title already exists");
+                }
+
+                Employee employee = employeeRepository.findById(request.getEmployeeId())
+                                .orElseThrow(() -> new EmployeeNotFoundException(
+                                                "Employee not found"));
+
+                Company company = companyRepository.findById(request.getCompanyId())
+                                .orElseThrow(() -> new CompanyNotFoundException(
+                                                "Company not found"));
+
+                Task task = TaskMapper.toEntity(
+                                request,
+                                employee,
+                                company);
+
+                Task savedTask = taskRepository.save(task);
+
+                notificationEventProducer.publishTaskAssigned(
+                                new TaskAssignedEvent(
+                                                savedTask.getId(),
+                                                employee.getId(),
+                                                savedTask.getTitle()));
+
+                return TaskMapper.toResponse(savedTask);
         }
 
-        Employee employee =
-                employeeRepository.findById(request.getEmployeeId())
-                        .orElseThrow(() ->
-                                new EmployeeNotFoundException(
-                                        "Employee not found"));
+        @Override
+        public TaskResponse getTaskById(Long id) {
 
-        Company company =
-                companyRepository.findById(request.getCompanyId())
-                        .orElseThrow(() ->
-                                new CompanyNotFoundException(
-                                        "Company not found"));
+                Task task = taskRepository.findById(id)
+                                .orElseThrow(() -> new TaskNotFoundException(
+                                                "Task not found"));
 
-        Task task =
-                TaskMapper.toEntity(
-                        request,
-                        employee,
-                        company);
+                return TaskMapper.toResponse(task);
+        }
 
-        Task savedTask =
-                taskRepository.save(task);
+        @Override
+        public List<TaskResponse> getAllTasks() {
 
-        notificationEventProducer.publishTaskAssigned(
-                new TaskAssignedEvent(
-                        savedTask.getId(),
-                        employee.getId(),
-                        savedTask.getTitle()));
+                return taskRepository.findAll()
+                                .stream()
+                                .map(TaskMapper::toResponse)
+                                .toList();
+        }
 
-        return TaskMapper.toResponse(savedTask);
-    }
+        @Override
+        public TaskResponse updateTask(
+                        Long id,
+                        TaskRequest request) {
 
-    @Override
-    public TaskResponse getTaskById(Long id) {
+                Task task = taskRepository.findById(id)
+                                .orElseThrow(() -> new TaskNotFoundException(
+                                                "Task not found"));
 
-        Task task =
-                taskRepository.findById(id)
-                        .orElseThrow(() ->
-                                new TaskNotFoundException(
-                                        "Task not found"));
+                taskRepository.findByTitle(request.getTitle())
+                                .ifPresent(existingTask -> {
 
-        return TaskMapper.toResponse(task);
-    }
+                                        if (!existingTask.getId().equals(task.getId())) {
+                                                throw new TaskTitleAlreadyExistsException(
+                                                                "Task title already exists");
+                                        }
+                                });
 
-    @Override
-    public List<TaskResponse> getAllTasks() {
+                Employee employee = employeeRepository.findById(request.getEmployeeId())
+                                .orElseThrow(() -> new EmployeeNotFoundException(
+                                                "Employee not found"));
 
-        return taskRepository.findAll()
-                .stream()
-                .map(TaskMapper::toResponse)
-                .toList();
-    }
+                Company company = companyRepository.findById(request.getCompanyId())
+                                .orElseThrow(() -> new CompanyNotFoundException(
+                                                "Company not found"));
 
-    @Override
-    public TaskResponse updateTask(
-            Long id,
-            TaskRequest request) {
+                task.setTitle(request.getTitle());
+                task.setDescription(request.getDescription());
+                task.setPriority(request.getPriority());
+                task.setDueDate(request.getDueDate());
+                task.setEmployee(employee);
+                task.setCompany(company);
 
-        Task task =
-                taskRepository.findById(id)
-                        .orElseThrow(() ->
-                                new TaskNotFoundException(
-                                        "Task not found"));
+                return TaskMapper.toResponse(
+                                taskRepository.save(task));
+        }
 
-        taskRepository.findByTitle(request.getTitle())
-                .ifPresent(existingTask -> {
+        @Override
+        public TaskResponse updateTaskStatus(
+                        Long id,
+                        TaskStatus status) {
 
-                    if (!existingTask.getId().equals(task.getId())) {
-                        throw new TaskTitleAlreadyExistsException(
-                                "Task title already exists");
-                    }
-                });
+                Task task = taskRepository.findById(id)
+                                .orElseThrow(() -> new TaskNotFoundException(
+                                                "Task not found"));
 
-        Employee employee =
-                employeeRepository.findById(request.getEmployeeId())
-                        .orElseThrow(() ->
-                                new EmployeeNotFoundException(
-                                        "Employee not found"));
+                task.setStatus(status);
 
-        Company company =
-                companyRepository.findById(request.getCompanyId())
-                        .orElseThrow(() ->
-                                new CompanyNotFoundException(
-                                        "Company not found"));
+                return TaskMapper.toResponse(
+                                taskRepository.save(task));
+        }
 
-        task.setTitle(request.getTitle());
-        task.setDescription(request.getDescription());
-        task.setPriority(request.getPriority());
-        task.setDueDate(request.getDueDate());
-        task.setEmployee(employee);
-        task.setCompany(company);
+        @Override
+        public void deleteTask(Long id) {
 
-        return TaskMapper.toResponse(
-                taskRepository.save(task));
-    }
+                Task task = taskRepository.findById(id)
+                                .orElseThrow(() -> new TaskNotFoundException(
+                                                "Task not found"));
 
-    @Override
-    public TaskResponse updateTaskStatus(
-            Long id,
-            TaskStatus status) {
-
-        Task task =
-                taskRepository.findById(id)
-                        .orElseThrow(() ->
-                                new TaskNotFoundException(
-                                        "Task not found"));
-
-        task.setStatus(status);
-
-        return TaskMapper.toResponse(
-                taskRepository.save(task));
-    }
-
-    @Override
-    public void deleteTask(Long id) {
-
-        Task task =
-                taskRepository.findById(id)
-                        .orElseThrow(() ->
-                                new TaskNotFoundException(
-                                        "Task not found"));
-
-        taskRepository.delete(task);
-    }
+                taskRepository.delete(task);
+        }
 }

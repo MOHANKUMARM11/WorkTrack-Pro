@@ -8,8 +8,10 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
-public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
+public interface AttendanceRepository
+        extends JpaRepository<Attendance, Long> {
 
     List<Attendance> findByEmployeeId(Long employeeId);
 
@@ -19,7 +21,33 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 
     List<Attendance> findByStatus(AttendanceStatus status);
 
-    boolean existsByEmployeeIdAndAttendanceDate(Long employeeId, LocalDate attendanceDate);
+    boolean existsByEmployeeIdAndAttendanceDate(
+            Long employeeId,
+            LocalDate attendanceDate
+    );
+
+    Optional<Attendance> findByEmployeeIdAndAttendanceDate(
+            Long employeeId,
+            LocalDate attendanceDate
+    );
+
+    List<Attendance>
+    findByEmployeeIdOrderByAttendanceDateDesc(
+            Long employeeId
+    );
+
+    List<Attendance>
+    findByEmployeeIdAndAttendanceDateBetweenOrderByAttendanceDateDesc(
+            Long employeeId,
+            LocalDate startDate,
+            LocalDate endDate
+    );
+
+    List<Attendance>
+    findByEmployeeIdAndStatusOrderByAttendanceDateDesc(
+            Long employeeId,
+            AttendanceStatus status
+    );
 
     long countByAttendanceDateAndStatus(
             LocalDate attendanceDate,
@@ -30,7 +58,8 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 
     long countByCompanyIdAndStatus(
             Long companyId,
-            AttendanceStatus status);
+            AttendanceStatus status
+    );
 
     @Query("""
         SELECT AVG(a.workingHours)
@@ -39,7 +68,6 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
         AND a.workingHours IS NOT NULL
         """)
     Double findAverageWorkingHoursByCompanyId(
-            @Param("companyId") Long companyId);
-
-
+            @Param("companyId") Long companyId
+    );
 }

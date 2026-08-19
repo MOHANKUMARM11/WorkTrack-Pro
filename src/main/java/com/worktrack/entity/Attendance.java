@@ -9,7 +9,15 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "attendance")
+@Table(
+        name = "attendance",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_attendance_employee_date",
+                        columnNames = {"employee_id", "attendance_date"}
+                )
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -33,6 +41,14 @@ public class Attendance {
     @Column(name = "working_hours")
     private Double workingHours;
 
+    @Column(name = "overtime_minutes")
+    @Builder.Default
+    private Integer overtimeMinutes = 0;
+
+    @Column(name = "is_late", nullable = false)
+    @Builder.Default
+    private Boolean late = false;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AttendanceStatus status;
@@ -53,16 +69,39 @@ public class Attendance {
 
     @PrePersist
     public void prePersist() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+
+        if (createdAt == null) {
+            createdAt = now;
+        }
+
+        if (updatedAt == null) {
+            updatedAt = now;
+        }
 
         if (status == null) {
             status = AttendanceStatus.PRESENT;
+        }
+
+        if (overtimeMinutes == null) {
+            overtimeMinutes = 0;
+        }
+
+        if (late == null) {
+            late = false;
         }
     }
 
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
+
+        if (overtimeMinutes == null) {
+            overtimeMinutes = 0;
+        }
+
+        if (late == null) {
+            late = false;
+        }
     }
 }
