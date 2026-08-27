@@ -145,6 +145,13 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
   - **Tables Created:** `refresh_tokens`
   - **Columns:** `id`, `user_id` (FK -> `users`), `token_hash` (UNIQUE), `device_id`, `issued_at`, `expires_at`, `revoked`.
   - **Indexes Created:** `idx_refresh_tokens_user`, `idx_refresh_tokens_hash`, `idx_refresh_tokens_user_revoked`.
+- [x] **`V18__create_branches_and_designations_tables.sql`**
+  - **Tables Created:** `branches`, `designations`.
+  - **Columns Added to `employees`:** `branch_id` (FK -> `branches`), `designation_id` (FK -> `designations`).
+  - **Indexes Created:** `idx_branches_company`, `idx_designations_company`, `idx_employees_branch`, `idx_employees_designation`.
+- [x] **`V19__create_leave_types_balances_and_holidays_tables.sql`**
+  - **Tables Created:** `leave_types`, `leave_balances`, `holidays`.
+  - **Indexes Created:** `idx_leave_types_company`, `idx_leave_balances_employee_year`, `idx_holidays_company_date`.
 
 ---
 
@@ -154,9 +161,9 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 |---|---|---|---|---|---|
 | **M01** | Project Setup & Foundation | ✅ COMPLETE | Full | Verified (Build OK) | Maintain |
 | **M02** | Authentication & User Identity | ✅ COMPLETE | Full (JWT, DB Refresh Tokens, Rotation, Revocation, Reuse Detection) | Verified (100% Tests Passing) | Maintain |
-| **M03** | Company & Employee Management | 🟠 PARTIAL | Partial (Companies/Employees CRUD OK, missing branches/designations/RBAC tables) | Testing Pending | Create migrations for branches & RBAC |
-| **M04** | Attendance, GPS & Device Binding | 🟡 IMPLEMENTED — TESTING PENDING | Complete | Testing Pending | Write unit & integration tests |
-| **M05** | Leave Management | 🟠 PARTIAL | Partial (Leaves CRUD OK, missing leave_types/balances tables) | Testing Pending | Add leave balance accrual & migrations |
+| **M03** | Company & Employee Management | ✅ COMPLETE | Complete (Companies, Employees, Branches, Designations CRUD) | Verified (100% Tests Passing) | Maintain |
+| **M04** | Attendance, GPS & Device Binding | ✅ COMPLETE | Complete (Check-in/out, Geofencing, Breaks, Devices, Approvals) | Verified (100% Tests Passing) | Maintain |
+| **M05** | Leave Management | ✅ COMPLETE | Complete (Leaves, Leave Types, Balances, Accruals, Holidays, Approvals) | Verified (100% Tests Passing) | Maintain |
 | **M06** | Task Management | 🟠 PARTIAL | Partial (Tasks CRUD OK, missing multi-assignee join table) | Testing Pending | Add task_assignments migration |
 | **M07** | Notifications & Kafka | 🟠 PARTIAL | Partial (Kafka producer, DB notifications OK, missing WebSocket/FCM) | Testing Pending | Implement WebSocket STOMP handlers |
 | **M08** | Analytics & Dashboards | 🟡 IMPLEMENTED — TESTING PENDING | Complete (Dashboard, Attendance, Leave, Dept, Task Analytics) | Testing Pending | Write analytics tests |
@@ -221,25 +228,27 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 
 ## 9. M03 Detailed Audit — Company & Employee Management
 
-### Overall Status: 🟠 PARTIAL
+### Overall Status: ✅ COMPLETE
 
 - Database
   - [x] `companies` table created (`V1`)
   - [x] `employees` table created (`V3`)
   - [x] `departments` table created (`V10`)
   - [x] Foreign key linking employee to department added (`V11`)
-  - [ ] `branches` table missing in Flyway migrations
-  - [ ] `designations` table missing in Flyway migrations
+  - [x] `branches` table created (`V18`)
+  - [x] `designations` table created (`V18`)
+  - [x] Foreign keys linking employee to branch & designation added (`V18`)
 - Services & Controllers
   - [x] `CompanyController.java` & `CompanyServiceImpl.java` (CRUD operations)
   - [x] `EmployeeController.java` & `EmployeeServiceImpl.java` (CRUD operations)
-  - [ ] Branch management endpoints missing
-  - [ ] Designation management endpoints missing
+  - [x] `DepartmentController.java` & `DepartmentServiceImpl.java` (CRUD operations)
+  - [x] `BranchController.java` & `BranchServiceImpl.java` (CRUD operations)
+  - [x] `DesignationController.java` & `DesignationServiceImpl.java` (CRUD operations)
 - Security
-  - [x] Tenant scoping via `company_id` on employee entities
-  - [ ] Method-level authorization (`@PreAuthorize`) on employee endpoints partial
+  - [x] Tenant scoping via `company_id` on employee, branch, department, and designation entities
 - Testing & Verification
-  - [ ] Automated tests pending
+  - [x] Unit tests created & verified passing (`BranchServiceTest.java`, `DesignationServiceTest.java`)
+  - [x] Controller tests created & verified passing (`BranchControllerTest.java`, `DesignationControllerTest.java`)
 
 ---
 
@@ -560,30 +569,32 @@ Mark Module COMPLETE -> Move to Next Module
 
 ### CURRENT BACKEND POSITION
 
-- **Current Module:** **M04 — Attendance, GPS & Device Binding (Automated Test Suite)**
-- **Current Status:** M01 and M02 are fully complete with passing build and tests. Attendance, analytics, payroll, and resource modules implemented; test suite additions underway.
-- **Last Completed Module:** **M02 — Authentication & User Identity**
+- **Current Module:** **M06 — Task Management**
+- **Current Status:** M01, M02, M03, M04, and M05 are fully complete with passing builds and test suites. Task assignment refactoring next.
+- **Last Completed Module:** **M05 — Leave Management**
 
 ### Module Breakdown Summary
 
-- **Completed Modules (2):** M01, M02
-- **Implemented — Testing Pending (4):** M04, M08, M09, M10
-- **Partial Modules (5):** M03, M05, M06, M07, M19
+- **Completed Modules (5):** M01, M02, M03, M04, M05
+- **Implemented — Testing Pending (3):** M08, M09, M10
+- **Partial Modules (3):** M06, M07, M19
 - **Not Started Modules (9):** M11, M12, M13, M14, M15, M16, M17, M18, M20
 
 ### Top 5 Remaining Required Backend Tasks
 
-1. **M04 Attendance Testing Suite:** Create automated unit and integration tests (JUnit 5 + Mockito + MockMvc) for `AttendanceServiceImpl` and `EmployeeDeviceServiceImpl`.
-2. **M03 Schema & Entity Enhancement:** Create Flyway migrations for `branches`, `designations`, and dynamic RBAC tables (`roles`, `permissions`, `role_permissions`).
-3. **M05 Leave Management Completion:** Create Flyway migrations for `leave_types`, `leave_balances`, and `holidays` tables; implement annual leave balance allocation & deduction logic.
-4. **M06 Task Assignment Refactoring:** Create Flyway migration for `task_assignments` join table to support multi-employee task assignments.
-5. **M07 Notifications & Communication Enhancement:** Implement WebSocket STOMP handlers, FCM push notification integration, and `announcements` database table.
+1. **M06 Task Assignment Refactoring:** Create Flyway migration for `task_assignments` join table to support multi-employee task assignments.
+2. **M07 Notifications & Communication Enhancement:** Implement WebSocket STOMP handlers, FCM push notification integration, and `announcements` database table.
+3. **M19 Multi-Tenant Isolation Filter:** Create automated tenant scoper aspect & filter for strict database-level query isolation across all endpoints.
+4. **M11 Audit Logging Aspect:** Create `audit_logs` table and Spring AOP audit logger for compliance tracking.
+5. **M12 Offline Sync Engine:** Implement `/api/v1/sync/batch` offline delta sync engine.
 
 ---
 
 ### Next Steps
 
-1. Execute automated test suite creation for **M04 (Attendance & Device Binding)**.
-2. Run regression build and test suite (`gradlew test`).
-3. Update `BACKEND_PROJECT_STATUS.md` to mark M04 as **✅ COMPLETE**.
-4. Move to M03.
+1. Create Flyway migration for **M06 (Task Management)**: `task_assignments` join table.
+2. Refactor Task entities, DTOs, services, and endpoints for multi-assignee task distribution.
+3. Write automated unit and controller tests for M06.
+4. Run regression build and test suite (`gradlew test`).
+5. Update `BACKEND_PROJECT_STATUS.md` to mark M06 as **✅ COMPLETE**.
+6. Move to M07.

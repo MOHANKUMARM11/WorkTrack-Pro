@@ -56,6 +56,14 @@ public class Employee {
     @JoinColumn(name = "department_id")
     private Department department;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id")
+    private Branch branch;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "designation_id")
+    private Designation designation;
+
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Task> tasks = new ArrayList<>();

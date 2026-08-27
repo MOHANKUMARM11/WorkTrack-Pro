@@ -17,6 +17,7 @@ import com.worktrack.repository.CompanyRepository;
 import com.worktrack.repository.EmployeeRepository;
 import com.worktrack.repository.LeaveRepository;
 import com.worktrack.service.LeaveService;
+import com.worktrack.service.LeaveBalanceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,7 @@ public class LeaveServiceImpl implements LeaveService {
     private final EmployeeRepository employeeRepository;
     private final CompanyRepository companyRepository;
     private final NotificationEventProducer notificationEventProducer;
+    private final LeaveBalanceService leaveBalanceService;
 
     @Override
     public LeaveResponse createLeave(
@@ -159,6 +161,12 @@ public class LeaveServiceImpl implements LeaveService {
 
         if (status == LeaveStatus.APPROVED
                 && previousStatus != LeaveStatus.APPROVED) {
+
+            leaveBalanceService.deductApprovedLeave(
+                    savedLeave.getEmployee().getId(),
+                    savedLeave.getLeaveType().name(),
+                    savedLeave.getStartDate().getYear(),
+                    savedLeave.getTotalDays().doubleValue());
 
             notificationEventProducer.publishLeaveApproved(
                     new LeaveApprovedEvent(
