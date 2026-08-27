@@ -165,6 +165,9 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 - [x] **`V23__create_system_settings_table.sql`**
   - **Tables Created:** `system_settings`.
   - **Indexes Created:** `idx_system_settings_company`, `idx_system_settings_key`.
+- [x] **`V24__create_rbac_tables.sql`**
+  - **Tables Created:** `permissions`, `roles`, `role_permissions`, `user_roles`.
+  - **Seed Data:** Base system permissions (`ATTENDANCE_READ`, `LEAVE_APPROVE`, etc.).
 
 ---
 
@@ -185,7 +188,7 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 | **M11** | Audit Logging | ✅ COMPLETE | Complete (AuditLog entity, Spring AOP @Auditable aspect, query APIs) | Verified (100% Tests Passing) | Maintain |
 | **M12** | Offline Sync Engine | 🔴 NOT STARTED | Not Started | Testing Pending | Create batch sync engine |
 | **M13** | System Settings | ✅ COMPLETE | Complete (SystemSetting entity, company key-value configuration APIs) | Verified (100% Tests Passing) | Maintain |
-| **M14** | Dynamic RBAC System | 🔴 NOT STARTED | None (Uses string roles) | None | Create `roles` & `permissions` tables |
+| **M14** | Dynamic RBAC System | ✅ COMPLETE | Complete (Roles, Permissions, CustomPermissionEvaluator, RBAC APIs) | Verified (100% Tests Passing) | Maintain |
 | **M15** | File & Presigned Uploads | 🔴 NOT STARTED | None | None | Integrate S3/MinIO presigned URLs |
 | **M16** | Holiday Calendar Management | 🔴 NOT STARTED | None | None | Create `holidays` table & endpoints |
 | **M17** | Scheduled Background Jobs | 🔴 NOT STARTED | None | None | Implement `@Scheduled` auto-checkout |
@@ -308,6 +311,25 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 - Testing Status
   - [ ] Automated unit tests for `AttendanceServiceImpl` pending
   - [ ] Integration tests for GPS geofence boundaries pending
+
+---
+
+## 20. M14 Detailed Audit — Dynamic RBAC System
+
+### Overall Status: ✅ COMPLETE
+
+- Database
+  - [x] `permissions` table created (`V24`)
+  - [x] `roles` table created (`V24`)
+  - [x] `role_permissions` join table created (`V24`)
+  - [x] `user_roles` join table created (`V24`)
+- Security Evaluator & Infrastructure
+  - [x] `CustomPermissionEvaluator.java` created for Spring Security expression evaluation
+- Services & Controllers
+  - [x] `RbacController.java` & `RbacServiceImpl.java` (Role CRUD, permission assignment, permission listing)
+- Testing & Verification
+  - [x] Unit tests created & verified passing (`RbacServiceTest.java`)
+  - [x] Controller tests created & verified passing (`RbacControllerTest.java`)
 
 ---
 
@@ -587,32 +609,32 @@ Mark Module COMPLETE -> Move to Next Module
 
 ### CURRENT BACKEND POSITION
 
-- **Current Module:** **M14 — Dynamic RBAC System**
-- **Current Status:** M01, M02, M03, M04, M05, M06, M07, M19, M11, and M13 are fully complete with passing builds and test suites. Dynamic RBAC & fine-grained permission mapping next.
-- **Last Completed Module:** **M13 — System Settings & Configuration**
+- **Current Module:** **M16 — Holiday & Working Hours Calendar**
+- **Current Status:** M01, M02, M03, M04, M05, M06, M07, M19, M11, M13, and M14 are fully complete with passing builds and test suites. Calendar & working hours calculation APIs next.
+- **Last Completed Module:** **M14 — Dynamic RBAC System**
 
 ### Module Breakdown Summary
 
-- **Completed Modules (10):** M01, M02, M03, M04, M05, M06, M07, M19, M11, M13
+- **Completed Modules (11):** M01, M02, M03, M04, M05, M06, M07, M19, M11, M13, M14
 - **Implemented — Testing Pending (3):** M08, M09, M10
 - **Partial Modules (0):** None
-- **Not Started Modules (7):** M14, M12, M15, M16, M17, M18, M20
+- **Not Started Modules (6):** M16, M12, M15, M17, M18, M20
 
 ### Top 5 Remaining Required Backend Tasks
 
-1. **M14 Dynamic RBAC System:** Create `roles`, `permissions`, and `role_permissions` tables for fine-grained authorization.
+1. **M16 Holiday & Working Hours Calendar:** Create `working_hours` table, holiday schedule calculation API, and working days evaluator.
 2. **M12 Offline Sync Engine:** Implement `/api/v1/sync/batch` offline delta sync engine for mobile offline sync.
 3. **M15 File & Presigned Upload Engine:** Implement S3/MinIO file storage provider and metadata repository.
-4. **M16 Shift & Roster Management:** Create `shifts`, `shift_assignments`, and `roster` tables and APIs.
-5. **M17 Scheduled Background Jobs:** Implement background scheduled maintenance & notification tasks.
+4. **M17 Scheduled Background Jobs:** Implement background scheduled maintenance & notification tasks.
+5. **M18 Advanced Reporting & Document Management:** Implement PDF/CSV export engine and document repository.
 
 ---
 
 ### Next Steps
 
-1. Create Flyway migration for **M14 (Dynamic RBAC System)**: `roles`, `permissions`, `role_permissions` join table.
-2. Implement Role & Permission entities, repositories, services, and security evaluator.
-3. Write automated unit and controller tests for M14.
+1. Create Flyway migration for **M16 (Holiday & Working Hours Calendar)**: `working_hours` table.
+2. Implement WorkingHours entity, repository, service, and working day calculation endpoints.
+3. Write automated unit and controller tests for M16.
 4. Run regression build and test suite (`gradlew test`).
-5. Update `BACKEND_PROJECT_STATUS.md` to mark M14 as **✅ COMPLETE**.
+5. Update `BACKEND_PROJECT_STATUS.md` to mark M16 as **✅ COMPLETE**.
 6. Move to M12.
