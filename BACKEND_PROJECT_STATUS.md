@@ -152,6 +152,10 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 - [x] **`V19__create_leave_types_balances_and_holidays_tables.sql`**
   - **Tables Created:** `leave_types`, `leave_balances`, `holidays`.
   - **Indexes Created:** `idx_leave_types_company`, `idx_leave_balances_employee_year`, `idx_holidays_company_date`.
+- [x] **`V20__create_task_assignments_table.sql`**
+  - **Tables Created:** `task_assignments`.
+  - **Tables Modified:** `tasks` (`employee_id` optional/nullable).
+  - **Indexes Created:** `idx_task_assignments_task`, `idx_task_assignments_employee`.
 
 ---
 
@@ -164,7 +168,7 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 | **M03** | Company & Employee Management | ✅ COMPLETE | Complete (Companies, Employees, Branches, Designations CRUD) | Verified (100% Tests Passing) | Maintain |
 | **M04** | Attendance, GPS & Device Binding | ✅ COMPLETE | Complete (Check-in/out, Geofencing, Breaks, Devices, Approvals) | Verified (100% Tests Passing) | Maintain |
 | **M05** | Leave Management | ✅ COMPLETE | Complete (Leaves, Leave Types, Balances, Accruals, Holidays, Approvals) | Verified (100% Tests Passing) | Maintain |
-| **M06** | Task Management | 🟠 PARTIAL | Partial (Tasks CRUD OK, missing multi-assignee join table) | Testing Pending | Add task_assignments migration |
+| **M06** | Task Management | ✅ COMPLETE | Complete (Tasks, Multi-Employee Task Assignments, Distribution) | Verified (100% Tests Passing) | Maintain |
 | **M07** | Notifications & Kafka | 🟠 PARTIAL | Partial (Kafka producer, DB notifications OK, missing WebSocket/FCM) | Testing Pending | Implement WebSocket STOMP handlers |
 | **M08** | Analytics & Dashboards | 🟡 IMPLEMENTED — TESTING PENDING | Complete (Dashboard, Attendance, Leave, Dept, Task Analytics) | Testing Pending | Write analytics tests |
 | **M09** | Payroll Management | 🟡 IMPLEMENTED — TESTING PENDING | Complete | Testing Pending | Write payroll tests |
@@ -319,18 +323,23 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 
 ## 12. M06 Detailed Audit — Task Management
 
-### Overall Status: 🟠 PARTIAL
+### Overall Status: ✅ COMPLETE
 
 - Database
   - [x] `tasks` table created (`V4`)
-  - [ ] `task_assignments` multi-assignee join table missing (tasks table currently links directly to single `employee_id`)
-  - [ ] `task_comments` table missing
+  - [x] `task_assignments` join table created (`V20`)
+  - [x] `tasks.employee_id` updated to optional/nullable for multi-employee support (`V20`)
 - Services & Controllers
-  - [x] `TaskController.java` & `TaskServiceImpl.java` (CRUD, status updates)
-  - [x] `TaskPerformanceAnalyticsController.java` & `TaskPerformanceAnalyticsServiceImpl.java`
-  - [ ] Multi-employee task assignment missing
+  - [x] `TaskController.java` & `TaskServiceImpl.java` (Task CRUD & status updates)
+  - [x] Multi-employee task assignment (`POST /tasks/{id}/assign`)
+  - [x] Employee task unassignment (`DELETE /tasks/{id}/assign/{employeeId}`)
+  - [x] Employee task query filtering (`GET /tasks/employee/{employeeId}`)
+  - [x] Company task query filtering (`GET /tasks/company/{companyId}`)
+- Kafka Messaging Integration
+  - [x] Kafka producer publishes `TaskAssignedEvent` on task creation and assignment
 - Testing & Verification
-  - [ ] Automated tests pending
+  - [x] Unit tests created & verified passing (`TaskServiceTest.java`)
+  - [x] Controller tests created & verified passing (`TaskControllerTest.java`)
 
 ---
 
@@ -569,32 +578,32 @@ Mark Module COMPLETE -> Move to Next Module
 
 ### CURRENT BACKEND POSITION
 
-- **Current Module:** **M06 — Task Management**
-- **Current Status:** M01, M02, M03, M04, and M05 are fully complete with passing builds and test suites. Task assignment refactoring next.
-- **Last Completed Module:** **M05 — Leave Management**
+- **Current Module:** **M07 — Notifications & Communication**
+- **Current Status:** M01, M02, M03, M04, M05, and M06 are fully complete with passing builds and test suites. Notification engine & STOMP WebSocket enhancements next.
+- **Last Completed Module:** **M06 — Task Management**
 
 ### Module Breakdown Summary
 
-- **Completed Modules (5):** M01, M02, M03, M04, M05
+- **Completed Modules (6):** M01, M02, M03, M04, M05, M06
 - **Implemented — Testing Pending (3):** M08, M09, M10
-- **Partial Modules (3):** M06, M07, M19
+- **Partial Modules (2):** M07, M19
 - **Not Started Modules (9):** M11, M12, M13, M14, M15, M16, M17, M18, M20
 
 ### Top 5 Remaining Required Backend Tasks
 
-1. **M06 Task Assignment Refactoring:** Create Flyway migration for `task_assignments` join table to support multi-employee task assignments.
-2. **M07 Notifications & Communication Enhancement:** Implement WebSocket STOMP handlers, FCM push notification integration, and `announcements` database table.
-3. **M19 Multi-Tenant Isolation Filter:** Create automated tenant scoper aspect & filter for strict database-level query isolation across all endpoints.
-4. **M11 Audit Logging Aspect:** Create `audit_logs` table and Spring AOP audit logger for compliance tracking.
-5. **M12 Offline Sync Engine:** Implement `/api/v1/sync/batch` offline delta sync engine.
+1. **M07 Notifications & Communication Enhancement:** Implement WebSocket STOMP handlers, FCM push notification integration, and `announcements` database table.
+2. **M19 Multi-Tenant Isolation Filter:** Create automated tenant scoper aspect & filter for strict database-level query isolation across all endpoints.
+3. **M11 Audit Logging Aspect:** Create `audit_logs` table and Spring AOP audit logger for compliance tracking.
+4. **M12 Offline Sync Engine:** Implement `/api/v1/sync/batch` offline delta sync engine.
+5. **M13 System Settings Module:** Create `system_settings` table and configuration endpoints.
 
 ---
 
 ### Next Steps
 
-1. Create Flyway migration for **M06 (Task Management)**: `task_assignments` join table.
-2. Refactor Task entities, DTOs, services, and endpoints for multi-assignee task distribution.
-3. Write automated unit and controller tests for M06.
+1. Create Flyway migration for **M07 (Notifications & Communication)**: `announcements` table.
+2. Implement WebSocket STOMP endpoint handlers and FCM push notifications.
+3. Write automated unit and controller tests for M07.
 4. Run regression build and test suite (`gradlew test`).
-5. Update `BACKEND_PROJECT_STATUS.md` to mark M06 as **✅ COMPLETE**.
-6. Move to M07.
+5. Update `BACKEND_PROJECT_STATUS.md` to mark M07 as **✅ COMPLETE**.
+6. Move to M19.

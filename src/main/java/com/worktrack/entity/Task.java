@@ -39,12 +39,16 @@ public class Task {
     private LocalDate dueDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "employee_id", nullable = false)
+    @JoinColumn(name = "employee_id")
     private Employee employee;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = false)
     private Company company;
+
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<TaskAssignment> assignments = new java.util.ArrayList<>();
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
