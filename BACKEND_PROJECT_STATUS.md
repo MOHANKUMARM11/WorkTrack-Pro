@@ -168,6 +168,9 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 - [x] **`V24__create_rbac_tables.sql`**
   - **Tables Created:** `permissions`, `roles`, `role_permissions`, `user_roles`.
   - **Seed Data:** Base system permissions (`ATTENDANCE_READ`, `LEAVE_APPROVE`, etc.).
+- [x] **`V25__create_working_hours_table.sql`**
+  - **Tables Created:** `working_hours`.
+  - **Indexes Created:** `idx_working_hours_company`.
 
 ---
 
@@ -190,7 +193,7 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 | **M13** | System Settings | ✅ COMPLETE | Complete (SystemSetting entity, company key-value configuration APIs) | Verified (100% Tests Passing) | Maintain |
 | **M14** | Dynamic RBAC System | ✅ COMPLETE | Complete (Roles, Permissions, CustomPermissionEvaluator, RBAC APIs) | Verified (100% Tests Passing) | Maintain |
 | **M15** | File & Presigned Uploads | 🔴 NOT STARTED | None | None | Integrate S3/MinIO presigned URLs |
-| **M16** | Holiday Calendar Management | 🔴 NOT STARTED | None | None | Create `holidays` table & endpoints |
+| **M16** | Holiday Calendar Management | ✅ COMPLETE | Complete (Holidays, WorkingHours schedule, Net working days/hours calculation engine) | Verified (100% Tests Passing) | Maintain |
 | **M17** | Scheduled Background Jobs | 🔴 NOT STARTED | None | None | Implement `@Scheduled` auto-checkout |
 | **M18** | Document Management | 🔴 NOT STARTED | Not Started | Testing Pending | Create documents schema |
 | **M19** | Multi-Tenant Isolation | ✅ COMPLETE | Complete (TenantContext ThreadLocal, TenantFilter, TenantAspect AOP) | Verified (100% Tests Passing) | Maintain |
@@ -414,17 +417,19 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 
 ---
 
-## 15. M09 Detailed Audit — Payroll Management (Discovered Module)
+## 22. M16 Detailed Audit — Holiday & Working Hours Calendar
 
-### Overall Status: 🟡 IMPLEMENTED — TESTING PENDING
+### Overall Status: ✅ COMPLETE
 
 - Database
-  - [x] `payrolls` table created (`V8`)
-- Services & Controllers
-  - [x] `PayrollController.java`
-  - [x] `PayrollServiceImpl.java` (Salary calculation, allowance, bonus, deduction, net salary derivation)
+  - [x] `holidays` table created (`V19`)
+  - [x] `working_hours` table created (`V25`)
+- Services & Calculation Engine
+  - [x] `HolidayController.java` & `HolidayServiceImpl.java` (Holiday calendar CRUD)
+  - [x] `WorkingHoursController.java` & `WorkingHoursServiceImpl.java` (Working hours schedule & net working days/hours calculation engine)
 - Testing & Verification
-  - [ ] Automated tests pending
+  - [x] Unit tests created & verified passing (`WorkingHoursServiceTest.java`)
+  - [x] Controller tests created & verified passing (`WorkingHoursControllerTest.java`)
 
 ---
 
@@ -609,32 +614,32 @@ Mark Module COMPLETE -> Move to Next Module
 
 ### CURRENT BACKEND POSITION
 
-- **Current Module:** **M16 — Holiday & Working Hours Calendar**
-- **Current Status:** M01, M02, M03, M04, M05, M06, M07, M19, M11, M13, and M14 are fully complete with passing builds and test suites. Calendar & working hours calculation APIs next.
-- **Last Completed Module:** **M14 — Dynamic RBAC System**
+- **Current Module:** **M12 — Offline Sync Engine**
+- **Current Status:** M01, M02, M03, M04, M05, M06, M07, M19, M11, M13, M14, and M16 are fully complete with passing builds and test suites. Offline batch sync engine next.
+- **Last Completed Module:** **M16 — Holiday & Working Hours Calendar**
 
 ### Module Breakdown Summary
 
-- **Completed Modules (11):** M01, M02, M03, M04, M05, M06, M07, M19, M11, M13, M14
+- **Completed Modules (12):** M01, M02, M03, M04, M05, M06, M07, M19, M11, M13, M14, M16
 - **Implemented — Testing Pending (3):** M08, M09, M10
 - **Partial Modules (0):** None
-- **Not Started Modules (6):** M16, M12, M15, M17, M18, M20
+- **Not Started Modules (5):** M12, M15, M17, M18, M20
 
 ### Top 5 Remaining Required Backend Tasks
 
-1. **M16 Holiday & Working Hours Calendar:** Create `working_hours` table, holiday schedule calculation API, and working days evaluator.
-2. **M12 Offline Sync Engine:** Implement `/api/v1/sync/batch` offline delta sync engine for mobile offline sync.
-3. **M15 File & Presigned Upload Engine:** Implement S3/MinIO file storage provider and metadata repository.
-4. **M17 Scheduled Background Jobs:** Implement background scheduled maintenance & notification tasks.
-5. **M18 Advanced Reporting & Document Management:** Implement PDF/CSV export engine and document repository.
+1. **M12 Offline Sync Engine:** Implement `/api/v1/sync/batch` offline delta sync engine for mobile offline sync.
+2. **M15 File & Presigned Upload Engine:** Implement S3/MinIO file storage provider and metadata repository.
+3. **M17 Scheduled Background Jobs:** Implement background scheduled maintenance & notification tasks.
+4. **M18 Advanced Reporting & Document Management:** Implement PDF/CSV export engine and document repository.
+5. **M20 Production Hardening & Load Testing:** Security headers, rate limiting, and Gatling load tests.
 
 ---
 
 ### Next Steps
 
-1. Create Flyway migration for **M16 (Holiday & Working Hours Calendar)**: `working_hours` table.
-2. Implement WorkingHours entity, repository, service, and working day calculation endpoints.
-3. Write automated unit and controller tests for M16.
+1. Create DTOs and batch processing service for **M12 (Offline Sync Engine)** (`/api/v1/sync/batch`).
+2. Implement transactional offline change replay (attendance check-ins, tasks, forms) with conflict resolution.
+3. Write automated unit and controller tests for M12.
 4. Run regression build and test suite (`gradlew test`).
-5. Update `BACKEND_PROJECT_STATUS.md` to mark M16 as **✅ COMPLETE**.
-6. Move to M12.
+5. Update `BACKEND_PROJECT_STATUS.md` to mark M12 as **✅ COMPLETE**.
+6. Move to M15.
