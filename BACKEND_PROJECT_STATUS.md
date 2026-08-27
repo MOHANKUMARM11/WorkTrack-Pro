@@ -159,6 +159,9 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 - [x] **`V21__create_announcements_table.sql`**
   - **Tables Created:** `announcements`.
   - **Indexes Created:** `idx_announcements_company`, `idx_announcements_target_role`.
+- [x] **`V22__create_audit_logs_table.sql`**
+  - **Tables Created:** `audit_logs`.
+  - **Indexes Created:** `idx_audit_logs_company`, `idx_audit_logs_user`, `idx_audit_logs_action`.
 
 ---
 
@@ -176,8 +179,8 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 | **M08** | Analytics & Dashboards | 🟡 IMPLEMENTED — TESTING PENDING | Complete (Dashboard, Attendance, Leave, Dept, Task Analytics) | Testing Pending | Write analytics tests |
 | **M09** | Payroll Management | 🟡 IMPLEMENTED — TESTING PENDING | Complete | Testing Pending | Write payroll tests |
 | **M10** | Resource / Asset Management | 🟡 IMPLEMENTED — TESTING PENDING | Complete | Testing Pending | Write resource tests |
-| **M11** | Audit Logging System | 🔴 NOT STARTED | None | None | Create `audit_logs` table & AOP aspect |
-| **M12** | Offline Sync Engine | 🔴 NOT STARTED | None | None | Implement `/sync/batch` engine |
+| **M11** | Audit Logging | ✅ COMPLETE | Complete (AuditLog entity, Spring AOP @Auditable aspect, query APIs) | Verified (100% Tests Passing) | Maintain |
+| **M12** | Offline Sync Engine | 🔴 NOT STARTED | Not Started | Testing Pending | Create batch sync engine |
 | **M13** | System Settings | 🔴 NOT STARTED | None | None | Create `system_settings` table & service |
 | **M14** | Dynamic RBAC System | 🔴 NOT STARTED | None (Uses string roles) | None | Create `roles` & `permissions` tables |
 | **M15** | File & Presigned Uploads | 🔴 NOT STARTED | None | None | Integrate S3/MinIO presigned URLs |
@@ -581,32 +584,32 @@ Mark Module COMPLETE -> Move to Next Module
 
 ### CURRENT BACKEND POSITION
 
-- **Current Module:** **M11 — Audit Logging**
-- **Current Status:** M01, M02, M03, M04, M05, M06, M07, and M19 are fully complete with passing builds and test suites. Audit logging schema & AOP aspect next.
-- **Last Completed Module:** **M19 — Multi-Tenant Isolation**
+- **Current Module:** **M12 — Offline Sync Engine**
+- **Current Status:** M01, M02, M03, M04, M05, M06, M07, M19, and M11 are fully complete with passing builds and test suites. Offline batch sync engine next.
+- **Last Completed Module:** **M11 — Audit Logging**
 
 ### Module Breakdown Summary
 
-- **Completed Modules (8):** M01, M02, M03, M04, M05, M06, M07, M19
+- **Completed Modules (9):** M01, M02, M03, M04, M05, M06, M07, M19, M11
 - **Implemented — Testing Pending (3):** M08, M09, M10
 - **Partial Modules (0):** None
-- **Not Started Modules (9):** M11, M12, M13, M14, M15, M16, M17, M18, M20
+- **Not Started Modules (8):** M12, M13, M14, M15, M16, M17, M18, M20
 
 ### Top 5 Remaining Required Backend Tasks
 
-1. **M11 Audit Logging Aspect:** Create `audit_logs` table and Spring AOP audit logger for compliance tracking.
-2. **M12 Offline Sync Engine:** Implement `/api/v1/sync/batch` offline delta sync engine.
-3. **M13 System Settings Module:** Create `system_settings` table and configuration endpoints.
-4. **M14 File Management Engine:** Implement S3/MinIO file storage provider and metadata repository.
-5. **M15 Shift & Roster Management:** Create `shifts`, `shift_assignments`, and `roster` tables and APIs.
+1. **M12 Offline Sync Engine:** Implement `/api/v1/sync/batch` offline delta sync engine for mobile offline sync.
+2. **M13 System Settings Module:** Create `system_settings` table and configuration endpoints.
+3. **M14 File Management Engine:** Implement S3/MinIO file storage provider and metadata repository.
+4. **M15 Shift & Roster Management:** Create `shifts`, `shift_assignments`, and `roster` tables and APIs.
+5. **M16 Holiday Calendar Management:** Create holiday schedule APIs and calendar generators.
 
 ---
 
 ### Next Steps
 
-1. Create Flyway migration for **M11 (Audit Logging)**: `audit_logs` table.
-2. Create `AuditLog` entity, repository, service, and Spring AOP audit logging aspect.
-3. Write automated unit and controller tests for M11.
+1. Create DTOs and batch processing service for **M12 (Offline Sync Engine)** (`/api/v1/sync/batch`).
+2. Implement transactional offline change replay (attendance check-ins, tasks, forms) with conflict resolution.
+3. Write automated unit and controller tests for M12.
 4. Run regression build and test suite (`gradlew test`).
-5. Update `BACKEND_PROJECT_STATUS.md` to mark M11 as **✅ COMPLETE**.
+5. Update `BACKEND_PROJECT_STATUS.md` to mark M12 as **✅ COMPLETE**.
 6. Move to M13.
