@@ -156,6 +156,9 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
   - **Tables Created:** `task_assignments`.
   - **Tables Modified:** `tasks` (`employee_id` optional/nullable).
   - **Indexes Created:** `idx_task_assignments_task`, `idx_task_assignments_employee`.
+- [x] **`V21__create_announcements_table.sql`**
+  - **Tables Created:** `announcements`.
+  - **Indexes Created:** `idx_announcements_company`, `idx_announcements_target_role`.
 
 ---
 
@@ -169,7 +172,7 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 | **M04** | Attendance, GPS & Device Binding | ✅ COMPLETE | Complete (Check-in/out, Geofencing, Breaks, Devices, Approvals) | Verified (100% Tests Passing) | Maintain |
 | **M05** | Leave Management | ✅ COMPLETE | Complete (Leaves, Leave Types, Balances, Accruals, Holidays, Approvals) | Verified (100% Tests Passing) | Maintain |
 | **M06** | Task Management | ✅ COMPLETE | Complete (Tasks, Multi-Employee Task Assignments, Distribution) | Verified (100% Tests Passing) | Maintain |
-| **M07** | Notifications & Kafka | 🟠 PARTIAL | Partial (Kafka producer, DB notifications OK, missing WebSocket/FCM) | Testing Pending | Implement WebSocket STOMP handlers |
+| **M07** | Notifications & Kafka | ✅ COMPLETE | Complete (DB Notifications, Kafka Producers/Consumers, WebSocket STOMP, FCM Push, Announcements) | Verified (100% Tests Passing) | Maintain |
 | **M08** | Analytics & Dashboards | 🟡 IMPLEMENTED — TESTING PENDING | Complete (Dashboard, Attendance, Leave, Dept, Task Analytics) | Testing Pending | Write analytics tests |
 | **M09** | Payroll Management | 🟡 IMPLEMENTED — TESTING PENDING | Complete | Testing Pending | Write payroll tests |
 | **M10** | Resource / Asset Management | 🟡 IMPLEMENTED — TESTING PENDING | Complete | Testing Pending | Write resource tests |
@@ -578,32 +581,32 @@ Mark Module COMPLETE -> Move to Next Module
 
 ### CURRENT BACKEND POSITION
 
-- **Current Module:** **M07 — Notifications & Communication**
-- **Current Status:** M01, M02, M03, M04, M05, and M06 are fully complete with passing builds and test suites. Notification engine & STOMP WebSocket enhancements next.
-- **Last Completed Module:** **M06 — Task Management**
+- **Current Module:** **M19 — Multi-Tenant Isolation**
+- **Current Status:** M01, M02, M03, M04, M05, M06, and M07 are fully complete with passing builds and test suites. Tenant isolation filter & aspect next.
+- **Last Completed Module:** **M07 — Notifications & Communication**
 
 ### Module Breakdown Summary
 
-- **Completed Modules (6):** M01, M02, M03, M04, M05, M06
+- **Completed Modules (7):** M01, M02, M03, M04, M05, M06, M07
 - **Implemented — Testing Pending (3):** M08, M09, M10
-- **Partial Modules (2):** M07, M19
+- **Partial Modules (1):** M19
 - **Not Started Modules (9):** M11, M12, M13, M14, M15, M16, M17, M18, M20
 
 ### Top 5 Remaining Required Backend Tasks
 
-1. **M07 Notifications & Communication Enhancement:** Implement WebSocket STOMP handlers, FCM push notification integration, and `announcements` database table.
-2. **M19 Multi-Tenant Isolation Filter:** Create automated tenant scoper aspect & filter for strict database-level query isolation across all endpoints.
-3. **M11 Audit Logging Aspect:** Create `audit_logs` table and Spring AOP audit logger for compliance tracking.
-4. **M12 Offline Sync Engine:** Implement `/api/v1/sync/batch` offline delta sync engine.
-5. **M13 System Settings Module:** Create `system_settings` table and configuration endpoints.
+1. **M19 Multi-Tenant Isolation Filter:** Create automated tenant scoper aspect & filter for strict database-level query isolation across all endpoints.
+2. **M11 Audit Logging Aspect:** Create `audit_logs` table and Spring AOP audit logger for compliance tracking.
+3. **M12 Offline Sync Engine:** Implement `/api/v1/sync/batch` offline delta sync engine.
+4. **M13 System Settings Module:** Create `system_settings` table and configuration endpoints.
+5. **M14 File Management Engine:** Implement S3/MinIO file storage provider and metadata repository.
 
 ---
 
 ### Next Steps
 
-1. Create Flyway migration for **M07 (Notifications & Communication)**: `announcements` table.
-2. Implement WebSocket STOMP endpoint handlers and FCM push notifications.
-3. Write automated unit and controller tests for M07.
+1. Create automated tenant isolation filter/aspect for **M19 (Multi-Tenant Isolation)**.
+2. Ensure strict `company_id` database context resolution on every HTTP request.
+3. Write automated unit and controller tests for M19.
 4. Run regression build and test suite (`gradlew test`).
-5. Update `BACKEND_PROJECT_STATUS.md` to mark M07 as **✅ COMPLETE**.
-6. Move to M19.
+5. Update `BACKEND_PROJECT_STATUS.md` to mark M19 as **✅ COMPLETE**.
+6. Move to M11.
