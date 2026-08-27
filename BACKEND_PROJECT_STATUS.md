@@ -171,6 +171,9 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 - [x] **`V25__create_working_hours_table.sql`**
   - **Tables Created:** `working_hours`.
   - **Indexes Created:** `idx_working_hours_company`.
+- [x] **`V26__create_sync_tables.sql`**
+  - **Tables Created:** `sync_logs`.
+  - **Indexes Created:** `idx_sync_logs_user`, `idx_sync_logs_batch`.
 
 ---
 
@@ -189,7 +192,7 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 | **M09** | Payroll Management | 🟡 IMPLEMENTED — TESTING PENDING | Complete | Testing Pending | Write payroll tests |
 | **M10** | Resource / Asset Management | 🟡 IMPLEMENTED — TESTING PENDING | Complete | Testing Pending | Write resource tests |
 | **M11** | Audit Logging | ✅ COMPLETE | Complete (AuditLog entity, Spring AOP @Auditable aspect, query APIs) | Verified (100% Tests Passing) | Maintain |
-| **M12** | Offline Sync Engine | 🔴 NOT STARTED | Not Started | Testing Pending | Create batch sync engine |
+| **M12** | Offline Sync Engine | ✅ COMPLETE | Complete (SyncLog entity, transactional batch offline replay engine, conflict resolution APIs) | Verified (100% Tests Passing) | Maintain |
 | **M13** | System Settings | ✅ COMPLETE | Complete (SystemSetting entity, company key-value configuration APIs) | Verified (100% Tests Passing) | Maintain |
 | **M14** | Dynamic RBAC System | ✅ COMPLETE | Complete (Roles, Permissions, CustomPermissionEvaluator, RBAC APIs) | Verified (100% Tests Passing) | Maintain |
 | **M15** | File & Presigned Uploads | 🔴 NOT STARTED | None | None | Integrate S3/MinIO presigned URLs |
@@ -333,6 +336,21 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 - Testing & Verification
   - [x] Unit tests created & verified passing (`RbacServiceTest.java`)
   - [x] Controller tests created & verified passing (`RbacControllerTest.java`)
+
+---
+
+## 18. M12 Detailed Audit — Offline Sync Engine
+
+### Overall Status: ✅ COMPLETE
+
+- Database
+  - [x] `sync_logs` table created (`V26`)
+- Services & Controllers
+  - [x] `SyncController.java` & `OfflineSyncServiceImpl.java` (`POST /api/v1/sync/batch` for mobile offline change replay)
+  - [x] Per-item transaction isolation and structured error/conflict reporting
+- Testing & Verification
+  - [x] Unit tests created & verified passing (`OfflineSyncServiceTest.java`)
+  - [x] Controller tests created & verified passing (`SyncControllerTest.java`)
 
 ---
 
@@ -614,32 +632,32 @@ Mark Module COMPLETE -> Move to Next Module
 
 ### CURRENT BACKEND POSITION
 
-- **Current Module:** **M12 — Offline Sync Engine**
-- **Current Status:** M01, M02, M03, M04, M05, M06, M07, M19, M11, M13, M14, and M16 are fully complete with passing builds and test suites. Offline batch sync engine next.
-- **Last Completed Module:** **M16 — Holiday & Working Hours Calendar**
+- **Current Module:** **M15 — File & Presigned Upload Engine**
+- **Current Status:** M01, M02, M03, M04, M05, M06, M07, M19, M11, M13, M14, M16, and M12 are fully complete with passing builds and test suites. File storage & presigned upload engine next.
+- **Last Completed Module:** **M12 — Offline Sync Engine**
 
 ### Module Breakdown Summary
 
-- **Completed Modules (12):** M01, M02, M03, M04, M05, M06, M07, M19, M11, M13, M14, M16
+- **Completed Modules (13):** M01, M02, M03, M04, M05, M06, M07, M19, M11, M13, M14, M16, M12
 - **Implemented — Testing Pending (3):** M08, M09, M10
 - **Partial Modules (0):** None
-- **Not Started Modules (5):** M12, M15, M17, M18, M20
+- **Not Started Modules (4):** M15, M17, M18, M20
 
 ### Top 5 Remaining Required Backend Tasks
 
-1. **M12 Offline Sync Engine:** Implement `/api/v1/sync/batch` offline delta sync engine for mobile offline sync.
-2. **M15 File & Presigned Upload Engine:** Implement S3/MinIO file storage provider and metadata repository.
-3. **M17 Scheduled Background Jobs:** Implement background scheduled maintenance & notification tasks.
-4. **M18 Advanced Reporting & Document Management:** Implement PDF/CSV export engine and document repository.
-5. **M20 Production Hardening & Load Testing:** Security headers, rate limiting, and Gatling load tests.
+1. **M15 File & Presigned Upload Engine:** Implement S3/MinIO file storage provider, `files` table, and presigned upload URL generation.
+2. **M17 Scheduled Background Jobs:** Implement background scheduled maintenance & notification tasks.
+3. **M18 Advanced Reporting & Document Management:** Implement PDF/CSV export engine and document repository.
+4. **M20 Production Hardening & Load Testing:** Security headers, rate limiting, and Gatling load tests.
+5. **Full System Integration Test Suite:** End-to-end regression validation.
 
 ---
 
 ### Next Steps
 
-1. Create DTOs and batch processing service for **M12 (Offline Sync Engine)** (`/api/v1/sync/batch`).
-2. Implement transactional offline change replay (attendance check-ins, tasks, forms) with conflict resolution.
-3. Write automated unit and controller tests for M12.
+1. Create Flyway migration for **M15 (File & Presigned Upload Engine)**: `files` metadata table.
+2. Implement FileMetadata entity, repository, storage provider service (S3/local), and presigned URL controller.
+3. Write automated unit and controller tests for M15.
 4. Run regression build and test suite (`gradlew test`).
-5. Update `BACKEND_PROJECT_STATUS.md` to mark M12 as **✅ COMPLETE**.
-6. Move to M15.
+5. Update `BACKEND_PROJECT_STATUS.md` to mark M15 as **✅ COMPLETE**.
+6. Move to M17.
