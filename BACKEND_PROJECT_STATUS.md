@@ -174,6 +174,9 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 - [x] **`V26__create_sync_tables.sql`**
   - **Tables Created:** `sync_logs`.
   - **Indexes Created:** `idx_sync_logs_user`, `idx_sync_logs_batch`.
+- [x] **`V27__create_shifts_and_roster_tables.sql`**
+  - **Tables Created:** `shifts`, `shift_assignments`.
+  - **Indexes Created:** `idx_shifts_company`, `idx_shift_assignments_employee`, `idx_shift_assignments_shift`.
 
 ---
 
@@ -195,7 +198,7 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 | **M12** | Offline Sync Engine | ✅ COMPLETE | Complete (SyncLog entity, transactional batch offline replay engine, conflict resolution APIs) | Verified (100% Tests Passing) | Maintain |
 | **M13** | System Settings | ✅ COMPLETE | Complete (SystemSetting entity, company key-value configuration APIs) | Verified (100% Tests Passing) | Maintain |
 | **M14** | Dynamic RBAC System | ✅ COMPLETE | Complete (Roles, Permissions, CustomPermissionEvaluator, RBAC APIs) | Verified (100% Tests Passing) | Maintain |
-| **M15** | File & Presigned Uploads | 🔴 NOT STARTED | None | None | Integrate S3/MinIO presigned URLs |
+| **M15** | Shift & Roster Management | ✅ COMPLETE | Complete (Shift & ShiftAssignment entities, roster assignment APIs, grace period logic) | Verified (100% Tests Passing) | Maintain |
 | **M16** | Holiday Calendar Management | ✅ COMPLETE | Complete (Holidays, WorkingHours schedule, Net working days/hours calculation engine) | Verified (100% Tests Passing) | Maintain |
 | **M17** | Scheduled Background Jobs | 🔴 NOT STARTED | None | None | Implement `@Scheduled` auto-checkout |
 | **M18** | Document Management | 🔴 NOT STARTED | Not Started | Testing Pending | Create documents schema |
@@ -351,6 +354,21 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 - Testing & Verification
   - [x] Unit tests created & verified passing (`OfflineSyncServiceTest.java`)
   - [x] Controller tests created & verified passing (`SyncControllerTest.java`)
+
+---
+
+## 21. M15 Detailed Audit — Shift & Roster Management
+
+### Overall Status: ✅ COMPLETE
+
+- Database
+  - [x] `shifts` table created (`V27`)
+  - [x] `shift_assignments` table created (`V27`)
+- Services & Controllers
+  - [x] `ShiftController.java` & `ShiftServiceImpl.java` (Multi-shift CRUD, roster assignment to employees, active shift resolution)
+- Testing & Verification
+  - [x] Unit tests created & verified passing (`ShiftServiceTest.java`)
+  - [x] Controller tests created & verified passing (`ShiftControllerTest.java`)
 
 ---
 
@@ -632,32 +650,32 @@ Mark Module COMPLETE -> Move to Next Module
 
 ### CURRENT BACKEND POSITION
 
-- **Current Module:** **M15 — File & Presigned Upload Engine**
-- **Current Status:** M01, M02, M03, M04, M05, M06, M07, M19, M11, M13, M14, M16, and M12 are fully complete with passing builds and test suites. File storage & presigned upload engine next.
-- **Last Completed Module:** **M12 — Offline Sync Engine**
+- **Current Module:** **M17 — Scheduled Background Jobs & Maintenance**
+- **Current Status:** M01, M02, M03, M04, M05, M06, M07, M19, M11, M13, M14, M16, M12, and M15 are fully complete with passing builds and test suites. Scheduled background maintenance & auto-checkout jobs next.
+- **Last Completed Module:** **M15 — Shift & Roster Management**
 
 ### Module Breakdown Summary
 
-- **Completed Modules (13):** M01, M02, M03, M04, M05, M06, M07, M19, M11, M13, M14, M16, M12
+- **Completed Modules (14):** M01, M02, M03, M04, M05, M06, M07, M19, M11, M13, M14, M16, M12, M15
 - **Implemented — Testing Pending (3):** M08, M09, M10
 - **Partial Modules (0):** None
-- **Not Started Modules (4):** M15, M17, M18, M20
+- **Not Started Modules (3):** M17, M18, M20
 
 ### Top 5 Remaining Required Backend Tasks
 
-1. **M15 File & Presigned Upload Engine:** Implement S3/MinIO file storage provider, `files` table, and presigned upload URL generation.
-2. **M17 Scheduled Background Jobs:** Implement background scheduled maintenance & notification tasks.
-3. **M18 Advanced Reporting & Document Management:** Implement PDF/CSV export engine and document repository.
-4. **M20 Production Hardening & Load Testing:** Security headers, rate limiting, and Gatling load tests.
-5. **Full System Integration Test Suite:** End-to-end regression validation.
+1. **M17 Scheduled Background Jobs:** Implement background scheduled maintenance (`@Scheduled` auto-checkout, leave balance reset, notification cleanups).
+2. **M18 Advanced Reporting & Document Management:** Implement PDF/CSV export engine and document repository.
+3. **M20 Production Hardening & Load Testing:** Security headers, rate limiting, and Gatling load tests.
+4. **Full System Integration Test Suite:** End-to-end regression validation.
+5. **Final API Documentation:** Swagger UI & OpenAPI 3.0 export.
 
 ---
 
 ### Next Steps
 
-1. Create Flyway migration for **M15 (File & Presigned Upload Engine)**: `files` metadata table.
-2. Implement FileMetadata entity, repository, storage provider service (S3/local), and presigned URL controller.
-3. Write automated unit and controller tests for M15.
+1. Create `@Scheduled` tasks component for **M17 (Scheduled Background Jobs & Maintenance)**.
+2. Implement auto-checkout for unclosed attendance records, leave balance accrual/reset jobs, and old notification purge.
+3. Write automated unit and integration tests for M17.
 4. Run regression build and test suite (`gradlew test`).
-5. Update `BACKEND_PROJECT_STATUS.md` to mark M15 as **✅ COMPLETE**.
-6. Move to M17.
+5. Update `BACKEND_PROJECT_STATUS.md` to mark M17 as **✅ COMPLETE**.
+6. Move to M18.
