@@ -1,15 +1,15 @@
 package com.worktrack.config;
 
 import com.worktrack.security.jwt.JwtAuthenticationFilter;
+import com.worktrack.security.tenant.TenantFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 @Configuration
 @EnableMethodSecurity
@@ -17,6 +17,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final TenantFilter tenantFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -32,6 +33,9 @@ public class SecurityConfig {
                                 // Public Authentication APIs
                                 "/api/v1/auth/**",
 
+                                // WebSocket STOMP Endpoint
+                                "/ws/**",
+
                                 // Swagger / OpenAPI
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
@@ -44,6 +48,10 @@ public class SecurityConfig {
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
+                )
+                .addFilterAfter(
+                        tenantFilter,
+                        JwtAuthenticationFilter.class
                 );
 
         return http.build();
