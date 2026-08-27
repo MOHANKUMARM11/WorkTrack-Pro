@@ -1,6 +1,7 @@
 package com.worktrack.controller;
 
 import com.worktrack.constants.AttendanceStatus;
+import com.worktrack.constants.UserRole;
 import com.worktrack.dto.request.AttendanceCheckInRequest;
 import com.worktrack.dto.request.AttendanceCheckOutRequest;
 import com.worktrack.dto.request.AttendanceCorrectionRequest;
@@ -13,11 +14,16 @@ import com.worktrack.dto.response.AttendanceLogResponse;
 import com.worktrack.dto.response.AttendanceResponse;
 import com.worktrack.dto.response.AttendanceTodayResponse;
 import com.worktrack.dto.response.BreakResponse;
+import com.worktrack.entity.Employee;
+import com.worktrack.entity.User;
+import com.worktrack.repository.EmployeeRepository;
 import com.worktrack.service.AttendanceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -29,6 +35,7 @@ import java.util.List;
 public class AttendanceController {
 
     private final AttendanceService attendanceService;
+    private final EmployeeRepository employeeRepository;
 
     @PostMapping
     public ResponseEntity<AttendanceResponse> createAttendance(
@@ -95,7 +102,10 @@ public class AttendanceController {
     @PostMapping("/check-in/{employeeId}")
     public ResponseEntity<AttendanceCheckInResponse> checkIn(
             @PathVariable Long employeeId,
-            @Valid @RequestBody AttendanceCheckInRequest request) {
+            @Valid @RequestBody AttendanceCheckInRequest request,
+            Authentication authentication) {
+
+        validateEmployeeAccess(employeeId, authentication);
 
         return new ResponseEntity<>(
                 attendanceService.checkIn(
@@ -109,7 +119,10 @@ public class AttendanceController {
     @PostMapping("/check-out/{employeeId}")
     public ResponseEntity<AttendanceCheckInResponse> checkOut(
             @PathVariable Long employeeId,
-            @Valid @RequestBody AttendanceCheckOutRequest request) {
+            @Valid @RequestBody AttendanceCheckOutRequest request,
+            Authentication authentication) {
+
+        validateEmployeeAccess(employeeId, authentication);
 
         return ResponseEntity.ok(
                 attendanceService.checkOut(
@@ -207,5 +220,16 @@ public class AttendanceController {
                         request
                 )
         );
+    }
+
+    private void validateEmployeeAccess(Long targetEmployeeId, Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof User user) {
+            if (user.getRole() == UserRole.EMPLOYEE) {
+                Employee employee = employeeRepository.findByEmail(user.getEmail()).orElse(null);
+                if (employee != null && !employee.getId().equals(targetEmployeeId)) {
+                    throw new AccessDeniedException("Cannot perform attendance operations for another employee");
+                }
+            }
+        }
     }
 }

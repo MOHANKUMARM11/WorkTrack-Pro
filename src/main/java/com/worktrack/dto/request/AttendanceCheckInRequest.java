@@ -15,8 +15,11 @@ public record AttendanceCheckInRequest(
         @PositiveOrZero(message = "Accuracy cannot be negative")
         Double accuracyM,
 
-        @NotBlank(message = "Device signature is required")
-        String deviceSignature,
+        @NotBlank(message = "Device ID is required")
+        String deviceId,
+
+        @NotBlank(message = "Device secret is required")
+        String deviceSecret,
 
         String beaconId,
 

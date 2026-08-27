@@ -107,4 +107,41 @@ public class EmployeeDeviceServiceImpl
 
         employeeDeviceRepository.save(device);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public EmployeeDevice verifyDevice(
+            Long employeeId,
+            String deviceId,
+            String deviceSecret
+    ) {
+        if (deviceId == null || deviceId.isBlank()) {
+            throw new IllegalArgumentException("Device ID is required");
+        }
+        if (deviceSecret == null || deviceSecret.isBlank()) {
+            throw new IllegalArgumentException("Device secret is required");
+        }
+
+        EmployeeDevice device = employeeDeviceRepository
+                .findByEmployeeIdAndDeviceId(employeeId, deviceId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Invalid device credentials"
+                        )
+                );
+
+        if (!Boolean.TRUE.equals(device.getActive()) || device.getRevokedAt() != null) {
+            throw new IllegalArgumentException(
+                    "Device is inactive or revoked"
+            );
+        }
+
+        if (!passwordEncoder.matches(deviceSecret, device.getSecretHash())) {
+            throw new IllegalArgumentException(
+                    "Invalid device credentials"
+            );
+        }
+
+        return device;
+    }
 }

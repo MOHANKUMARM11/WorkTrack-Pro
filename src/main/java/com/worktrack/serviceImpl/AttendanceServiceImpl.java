@@ -38,6 +38,7 @@ import com.worktrack.repository.GeofenceRepository;
 import com.worktrack.repository.GpsLocationRepository;
 import com.worktrack.repository.OfficeLocationRepository;
 import com.worktrack.service.AttendanceService;
+import com.worktrack.service.EmployeeDeviceService;
 import com.worktrack.util.GeoUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -68,6 +69,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     private final GeofenceRepository geofenceRepository;
     private final OfficeLocationRepository officeLocationRepository;
     private final BreakRepository breakRepository;
+    private final EmployeeDeviceService employeeDeviceService;
 
     @Override
     public AttendanceResponse createAttendance(
@@ -235,6 +237,11 @@ public class AttendanceServiceImpl implements AttendanceService {
                                 new EmployeeNotFoundException(
                                         "Employee not found"));
 
+        employeeDeviceService.verifyDevice(
+                employeeId,
+                request.deviceId(),
+                request.deviceSecret());
+
         LocalDate today = LocalDate.now();
 
         if (attendanceRepository.existsByEmployeeIdAndAttendanceDate(
@@ -243,13 +250,6 @@ public class AttendanceServiceImpl implements AttendanceService {
 
             throw new DuplicateAttendanceException(
                     "Attendance already exists for this employee today");
-        }
-
-        if (request.deviceSignature() == null
-                || request.deviceSignature().isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "Device signature is required");
         }
 
         LocationValidationResult validation =
@@ -280,7 +280,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                         .longitude(request.longitude())
                         .accuracyM(request.accuracyM())
                         .source(validation.source())
-                        .deviceSignature(request.deviceSignature())
+                        .deviceSignature(request.deviceId())
                         .beaconId(request.beaconId())
                         .wifiBssid(request.wifiBssid())
                         .manualNote(request.manualNote())
@@ -335,12 +335,10 @@ public class AttendanceServiceImpl implements AttendanceService {
                     "Attendance has already been checked out");
         }
 
-        if (request.deviceSignature() == null
-                || request.deviceSignature().isBlank()) {
-
-            throw new IllegalArgumentException(
-                    "Device signature is required");
-        }
+        employeeDeviceService.verifyDevice(
+                employeeId,
+                request.deviceId(),
+                request.deviceSecret());
 
         LocationValidationResult validation =
                 validateLocation(employee, request);
@@ -363,7 +361,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                         .longitude(request.longitude())
                         .accuracyM(request.accuracyM())
                         .source(validation.source())
-                        .deviceSignature(request.deviceSignature())
+                        .deviceSignature(request.deviceId())
                         .beaconId(request.beaconId())
                         .wifiBssid(request.wifiBssid())
                         .build();

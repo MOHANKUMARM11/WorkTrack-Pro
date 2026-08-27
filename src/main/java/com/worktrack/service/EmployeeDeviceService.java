@@ -18,4 +18,10 @@ public interface EmployeeDeviceService {
             Long employeeId,
             Long deviceId
     );
+
+    EmployeeDevice verifyDevice(
+            Long employeeId,
+            String deviceId,
+            String deviceSecret
+    );
 }
