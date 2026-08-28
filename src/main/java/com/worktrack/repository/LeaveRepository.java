@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public interface LeaveRepository extends JpaRepository<Leave, Long> {
 
@@ -35,4 +36,6 @@ public interface LeaveRepository extends JpaRepository<Leave, Long> {
     long countByEmployeeDepartmentIdAndStatus(
             Long departmentId,
             LeaveStatus status);
+
+    List<Leave> findByCompanyId(Long companyId);
 }

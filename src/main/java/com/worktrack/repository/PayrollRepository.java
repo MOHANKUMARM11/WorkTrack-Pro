@@ -15,4 +15,6 @@ public interface PayrollRepository extends JpaRepository<Payroll, Long> {
     long count();
 
     long countByStatus(PayrollStatus status);
+
+    java.util.List<Payroll> findByCompanyId(Long companyId);
 }
