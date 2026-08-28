@@ -200,7 +200,7 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 | **M14** | Dynamic RBAC System | ✅ COMPLETE | Complete (Roles, Permissions, CustomPermissionEvaluator, RBAC APIs) | Verified (100% Tests Passing) | Maintain |
 | **M15** | Shift & Roster Management | ✅ COMPLETE | Complete (Shift & ShiftAssignment entities, roster assignment APIs, grace period logic) | Verified (100% Tests Passing) | Maintain |
 | **M16** | Holiday Calendar Management | ✅ COMPLETE | Complete (Holidays, WorkingHours schedule, Net working days/hours calculation engine) | Verified (100% Tests Passing) | Maintain |
-| **M17** | Scheduled Background Jobs | 🔴 NOT STARTED | None | None | Implement `@Scheduled` auto-checkout |
+| **M17** | Scheduled Background Jobs | ✅ COMPLETE | Complete (@EnableScheduling, AttendanceAutoCheckoutScheduler, LeaveAccrualScheduler, SystemMaintenanceScheduler, SchedulerController) | Verified (100% Tests Passing) | Maintain |
 | **M18** | Document Management | 🔴 NOT STARTED | Not Started | Testing Pending | Create documents schema |
 | **M19** | Multi-Tenant Isolation | ✅ COMPLETE | Complete (TenantContext ThreadLocal, TenantFilter, TenantAspect AOP) | Verified (100% Tests Passing) | Maintain |
 | **M20** | System Security & Hardening | 🔴 NOT STARTED | Not Started | Testing Pending | Configure security headers & rate limiting |load tests |
@@ -509,9 +509,20 @@ A total of **15 Flyway migration files** exist in `src/main/resources/db/migrati
 - **Status:** 🔴 NOT STARTED
 - **Missing:** `holidays` table, company holiday calendar APIs.
 
-### M17 — Scheduled Background Jobs
-- **Status:** 🔴 NOT STARTED
-- **Missing:** Spring `@Scheduled` auto-checkout at midnight, leave accrual cron jobs.
+### 23. M17 Detailed Audit — Scheduled Background Jobs & Maintenance
+
+### Overall Status: ✅ COMPLETE
+
+- Configuration & Schedulers
+  - [x] `SchedulerConfig.java` (`@EnableScheduling` configured with thread pool task scheduler)
+  - [x] `AttendanceAutoCheckoutScheduler.java` (Daily auto-checkout of unclosed attendance records)
+  - [x] `LeaveAccrualScheduler.java` (Monthly 1st-of-month leave balance accrual)
+  - [x] `SystemMaintenanceScheduler.java` (Weekly Sunday housekeeping purge of expired sync logs)
+- Controllers & Endpoints
+  - [x] `SchedulerController.java` (`/api/v1/admin/jobs/...` manual execution trigger endpoints)
+- Testing & Verification
+  - [x] Unit tests created & verified passing (`AttendanceAutoCheckoutSchedulerTest.java`, `LeaveAccrualSchedulerTest.java`)
+  - [x] Controller tests created & verified passing (`SchedulerControllerTest.java`)
 
 ### M18 — Advanced Reporting & Export
 - **Status:** 🔴 NOT STARTED
@@ -650,32 +661,32 @@ Mark Module COMPLETE -> Move to Next Module
 
 ### CURRENT BACKEND POSITION
 
-- **Current Module:** **M17 — Scheduled Background Jobs & Maintenance**
-- **Current Status:** M01, M02, M03, M04, M05, M06, M07, M19, M11, M13, M14, M16, M12, and M15 are fully complete with passing builds and test suites. Scheduled background maintenance & auto-checkout jobs next.
-- **Last Completed Module:** **M15 — Shift & Roster Management**
+- **Current Module:** **M18 — Advanced Reporting & Document Management**
+- **Current Status:** M01, M02, M03, M04, M05, M06, M07, M19, M11, M13, M14, M16, M12, M15, and M17 are fully complete with passing builds and test suites. PDF/CSV export engine and document management next.
+- **Last Completed Module:** **M17 — Scheduled Background Jobs & Maintenance**
 
 ### Module Breakdown Summary
 
-- **Completed Modules (14):** M01, M02, M03, M04, M05, M06, M07, M19, M11, M13, M14, M16, M12, M15
+- **Completed Modules (15):** M01, M02, M03, M04, M05, M06, M07, M19, M11, M13, M14, M16, M12, M15, M17
 - **Implemented — Testing Pending (3):** M08, M09, M10
 - **Partial Modules (0):** None
-- **Not Started Modules (3):** M17, M18, M20
+- **Not Started Modules (2):** M18, M20
 
 ### Top 5 Remaining Required Backend Tasks
 
-1. **M17 Scheduled Background Jobs:** Implement background scheduled maintenance (`@Scheduled` auto-checkout, leave balance reset, notification cleanups).
-2. **M18 Advanced Reporting & Document Management:** Implement PDF/CSV export engine and document repository.
-3. **M20 Production Hardening & Load Testing:** Security headers, rate limiting, and Gatling load tests.
-4. **Full System Integration Test Suite:** End-to-end regression validation.
-5. **Final API Documentation:** Swagger UI & OpenAPI 3.0 export.
+1. **M18 Advanced Reporting & Document Management:** Implement `documents` table, document storage repository, PDF/CSV report generation engine.
+2. **M20 Production Hardening & Load Testing:** Security headers, rate limiting, and Gatling load tests.
+3. **Full System Integration Test Suite:** End-to-end regression validation.
+4. **Final API Documentation:** Swagger UI & OpenAPI 3.0 export.
+5. **Production Deployment Packaging:** Docker compose & Flyway production configuration check.
 
 ---
 
 ### Next Steps
 
-1. Create `@Scheduled` tasks component for **M17 (Scheduled Background Jobs & Maintenance)**.
-2. Implement auto-checkout for unclosed attendance records, leave balance accrual/reset jobs, and old notification purge.
-3. Write automated unit and integration tests for M17.
+1. Create Flyway migration for **M18 (Advanced Reporting & Document Management)**: `documents` table.
+2. Implement Document entity, repository, report generator service (PDF/CSV export), and DocumentController.
+3. Write automated unit and controller tests for M18.
 4. Run regression build and test suite (`gradlew test`).
-5. Update `BACKEND_PROJECT_STATUS.md` to mark M17 as **✅ COMPLETE**.
-6. Move to M18.
+5. Update `BACKEND_PROJECT_STATUS.md` to mark M18 as **✅ COMPLETE**.
+6. Move to M20.

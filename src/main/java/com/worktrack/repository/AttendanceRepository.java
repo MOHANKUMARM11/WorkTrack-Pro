@@ -70,4 +70,6 @@ public interface AttendanceRepository
     Double findAverageWorkingHoursByCompanyId(
             @Param("companyId") Long companyId
     );
+
+    List<Attendance> findByCheckOutIsNullAndAttendanceDateBefore(LocalDate cutoffDate);
 }
